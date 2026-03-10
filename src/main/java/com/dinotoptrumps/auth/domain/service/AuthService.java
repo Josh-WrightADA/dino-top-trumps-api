@@ -4,6 +4,7 @@ import com.dinotoptrumps.auth.domain.model.User;
 import com.dinotoptrumps.auth.ports.in.ForAuthenticating;
 import com.dinotoptrumps.auth.ports.in.ForManagingProfile;
 import com.dinotoptrumps.auth.ports.in.ForRegistering;
+import com.dinotoptrumps.auth.ports.out.ForEncodingPasswords;
 import com.dinotoptrumps.auth.ports.out.ForPersistingUsers;
 import com.dinotoptrumps.auth.domain.exception.UserAlreadyExistsException;
 import com.dinotoptrumps.auth.domain.exception.InvalidCredentialsException;
@@ -14,9 +15,11 @@ import java.util.UUID;
 public class AuthService implements ForRegistering, ForAuthenticating, ForManagingProfile {
 
     private final ForPersistingUsers userRepository;
+    private final ForEncodingPasswords passwordEncoder;
 
-    public AuthService(ForPersistingUsers userRepository) {
+    public AuthService(ForPersistingUsers userRepository, ForEncodingPasswords passwordEncoder) {
         this.userRepository = userRepository;
+        this.passwordEncoder = passwordEncoder;
     }
 
     @Override
@@ -28,8 +31,8 @@ public class AuthService implements ForRegistering, ForAuthenticating, ForManagi
             throw new UserAlreadyExistsException("Email already registered: " + email);
         }
 
-        // TODO: Hash the raw password using a password encoder
-        User user = User.create(username, email, rawPassword);
+        String hashedPassword = passwordEncoder.encode(rawPassword);
+        User user = User.create(username, email, hashedPassword);
         return userRepository.save(user);
     }
 
@@ -38,7 +41,9 @@ public class AuthService implements ForRegistering, ForAuthenticating, ForManagi
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new InvalidCredentialsException("Invalid username or password"));
 
-        // TODO: Verify password hash
+        if (!passwordEncoder.matches(rawPassword, user.getPasswordHash())) {
+            throw new InvalidCredentialsException("Invalid username or password");
+        }
         return user;
     }
 

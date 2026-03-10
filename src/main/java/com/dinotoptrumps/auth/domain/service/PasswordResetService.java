@@ -3,6 +3,7 @@ package com.dinotoptrumps.auth.domain.service;
 import com.dinotoptrumps.auth.domain.model.PasswordResetToken;
 import com.dinotoptrumps.auth.domain.model.User;
 import com.dinotoptrumps.auth.ports.in.ForResettingPassword;
+import com.dinotoptrumps.auth.ports.out.ForEncodingPasswords;
 import com.dinotoptrumps.auth.ports.out.ForPersistingResetTokens;
 import com.dinotoptrumps.auth.ports.out.ForPersistingUsers;
 import com.dinotoptrumps.auth.ports.out.ForSendingEmails;
@@ -17,13 +18,16 @@ public class PasswordResetService implements ForResettingPassword {
     private final ForPersistingUsers userRepository;
     private final ForPersistingResetTokens tokenRepository;
     private final ForSendingEmails emailSender;
+    private final ForEncodingPasswords passwordEncoder;
 
     public PasswordResetService(ForPersistingUsers userRepository,
                                 ForPersistingResetTokens tokenRepository,
-                                ForSendingEmails emailSender) {
+                                ForSendingEmails emailSender,
+                                ForEncodingPasswords passwordEncoder) {
         this.userRepository = userRepository;
         this.tokenRepository = tokenRepository;
         this.emailSender = emailSender;
+        this.passwordEncoder = passwordEncoder;
     }
 
     @Override
@@ -55,8 +59,8 @@ public class PasswordResetService implements ForResettingPassword {
         User user = userRepository.findById(resetToken.getUserId())
                 .orElseThrow(() -> new IllegalStateException("User not found for reset token"));
 
-        // TODO: Hash the new password
-        user.setPasswordHash(newRawPassword);
+        String hashedPassword = passwordEncoder.encode(newRawPassword);
+        user.setPasswordHash(hashedPassword);
         userRepository.save(user);
 
         resetToken.markUsed();
