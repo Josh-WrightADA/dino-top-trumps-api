@@ -1,44 +1,82 @@
 package com.dinotoptrumps.auth.adapters.in;
 
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import com.dinotoptrumps.auth.adapters.in.dto.*;
+import com.dinotoptrumps.auth.domain.model.User;
+import com.dinotoptrumps.auth.domain.model.UserProfile;
+import com.dinotoptrumps.auth.ports.in.ForAuthenticating;
+import com.dinotoptrumps.auth.ports.in.ForManagingProfile;
+import com.dinotoptrumps.auth.ports.in.ForRegistering;
+import com.dinotoptrumps.auth.ports.in.ForResettingPassword;
+import jakarta.validation.Valid;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/v1/auth")
 public class AuthController {
 
-    // TODO: Inject ForRegistering, ForAuthenticating, ForManagingProfile, ForResettingPassword
+    private final ForRegistering forRegistering;
+    private final ForAuthenticating forAuthenticating;
+    private final ForManagingProfile forManagingProfile;
+    private final ForResettingPassword forResettingPassword;
+    private final JwtTokenProvider jwtTokenProvider;
+
+    public AuthController(ForRegistering forRegistering,
+                          ForAuthenticating forAuthenticating,
+                          ForManagingProfile forManagingProfile,
+                          ForResettingPassword forResettingPassword,
+                          JwtTokenProvider jwtTokenProvider) {
+        this.forRegistering = forRegistering;
+        this.forAuthenticating = forAuthenticating;
+        this.forManagingProfile = forManagingProfile;
+        this.forResettingPassword = forResettingPassword;
+        this.jwtTokenProvider = jwtTokenProvider;
+    }
 
     @PostMapping("/register")
-    public void register() {
-        // TODO: Accept registration DTO, delegate to ForRegistering
+    public ResponseEntity<MessageResponse> register(@Valid @RequestBody RegisterRequest request) {
+        forRegistering.register(request.username(), request.email(), request.password());
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(new MessageResponse("Registration successful"));
     }
 
     @PostMapping("/login")
-    public void login() {
-        // TODO: Accept login DTO, delegate to ForAuthenticating, return JWT
+    public ResponseEntity<LoginResponse> login(@Valid @RequestBody LoginRequest request) {
+        User user = forAuthenticating.authenticate(request.username(), request.password());
+        String token = jwtTokenProvider.generateToken(user.getId(), user.getUsername());
+        return ResponseEntity.ok(new LoginResponse(token));
     }
 
     @GetMapping("/me")
-    public void getProfile() {
-        // TODO: Get authenticated user profile
+    public ResponseEntity<ProfileResponse> getProfile(Authentication authentication) {
+        UUID userId = (UUID) authentication.getPrincipal();
+        User user = forManagingProfile.getProfile(userId);
+        UserProfile profile = UserProfile.fromUser(user);
+        return ResponseEntity.ok(ProfileResponse.from(profile));
     }
 
     @PutMapping("/me")
-    public void updateProfile() {
-        // TODO: Update display name
+    public ResponseEntity<ProfileResponse> updateProfile(Authentication authentication,
+                                                         @Valid @RequestBody UpdateProfileRequest request) {
+        UUID userId = (UUID) authentication.getPrincipal();
+        User user = forManagingProfile.updateDisplayName(userId, request.displayName());
+        UserProfile profile = UserProfile.fromUser(user);
+        return ResponseEntity.ok(ProfileResponse.from(profile));
     }
 
     @PostMapping("/forgot-password")
-    public void forgotPassword() {
-        // TODO: Accept email, delegate to ForResettingPassword
+    public ResponseEntity<MessageResponse> forgotPassword(@Valid @RequestBody ForgotPasswordRequest request) {
+        forResettingPassword.requestPasswordReset(request.email());
+        return ResponseEntity.ok(new MessageResponse("If that email exists, a reset link has been sent"));
     }
 
     @PostMapping("/reset-password")
-    public void resetPassword() {
-        // TODO: Accept token + new password, delegate to ForResettingPassword
+    public ResponseEntity<MessageResponse> resetPassword(@Valid @RequestBody ResetPasswordRequest request) {
+        forResettingPassword.resetPassword(request.token(), request.newPassword());
+        return ResponseEntity.ok(new MessageResponse("Password reset successful"));
     }
 }

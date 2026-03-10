@@ -18,6 +18,10 @@ spring:
   flyway:
     enabled: true
 
+jwt:
+  secret: "dino-top-trumps-dev-secret-key-minimum-32-chars!!"
+  expiration-ms: 86400000
+
 ---
 spring:
   config:
@@ -31,3 +35,7 @@ spring:
     show-sql: false
   flyway:
     enabled: true
+
+jwt:
+  secret: ${JWT_SECRET}
+  expiration-ms: 86400000
