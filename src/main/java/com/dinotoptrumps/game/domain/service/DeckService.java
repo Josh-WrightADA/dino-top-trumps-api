@@ -16,6 +16,10 @@ public class DeckService {
      * @return an array of two Hand objects [player1Hand, player2Hand]
      */
     public Hand[] deal(List<UUID> cardIds) {
+        if (cardIds.size() < 2) {
+            throw new IllegalArgumentException("Need at least 2 cards to deal");
+        }
+
         List<UUID> shuffled = new ArrayList<>(cardIds);
         Collections.shuffle(shuffled);
 

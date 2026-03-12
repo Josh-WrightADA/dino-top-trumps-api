@@ -1,6 +1,7 @@
 package com.dinotoptrumps.game.domain.model;
 
 import java.time.Instant;
+import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 
@@ -51,82 +52,89 @@ public class Game {
         );
     }
 
-    public UUID getId() {
-        return id;
+    // --- Getters ---
+
+    public UUID getId() { return id; }
+    public UUID getPlayer1Id() { return player1Id; }
+    public UUID getPlayer2Id() { return player2Id; }
+    public GameStatus getStatus() { return status; }
+    public UUID getCurrentTurnPlayerId() { return currentTurnPlayerId; }
+    public List<UUID> getPlayer1Hand() { return Collections.unmodifiableList(player1Hand); }
+    public List<UUID> getPlayer2Hand() { return Collections.unmodifiableList(player2Hand); }
+    public UUID getWinnerId() { return winnerId; }
+    public Instant getTurnDeadline() { return turnDeadline; }
+    public Instant getCreatedAt() { return createdAt; }
+    public Instant getUpdatedAt() { return updatedAt; }
+
+    // --- Domain behaviour ---
+
+    public boolean isPlayer1(UUID playerId) {
+        return player1Id.equals(playerId);
     }
 
-    public UUID getPlayer1Id() {
-        return player1Id;
-    }
-
-    public UUID getPlayer2Id() {
-        return player2Id;
-    }
-
-    public void setPlayer2Id(UUID player2Id) {
-        this.player2Id = player2Id;
+    /**
+     * Sets up the game when a second player joins: deals cards and starts play.
+     */
+    public void start(UUID joiningPlayerId, Hand[] dealtHands) {
+        this.player2Id = joiningPlayerId;
+        this.player1Hand = dealtHands[0].getCardIds();
+        this.player2Hand = dealtHands[1].getCardIds();
+        this.status = GameStatus.IN_PROGRESS;
+        this.currentTurnPlayerId = player1Id;
         this.updatedAt = Instant.now();
     }
 
-    public GameStatus getStatus() {
-        return status;
-    }
+    /**
+     * Resolves a round of Top Trumps: removes top cards, awards them to the winner,
+     * and sets the next turn according to authentic rules (winner keeps turn).
+     *
+     * @param winningCardId the ID of the winning card, or null for a draw
+     * @param p1CardId player 1's card in this round
+     * @param p2CardId player 2's card in this round
+     * @return the winning player's UUID, or null for a draw
+     */
+    public UUID resolveRound(UUID winningCardId, UUID p1CardId, UUID p2CardId) {
+        Hand p1Hand = new Hand(player1Hand);
+        Hand p2Hand = new Hand(player2Hand);
 
-    public void setStatus(GameStatus status) {
-        this.status = status;
+        p1Hand.removeTopCard();
+        p2Hand.removeTopCard();
+
+        UUID turnWinnerPlayerId = null;
+
+        if (winningCardId == null) {
+            p1Hand.addCardsToBottom(List.of(p1CardId));
+            p2Hand.addCardsToBottom(List.of(p2CardId));
+        } else if (winningCardId.equals(p1CardId)) {
+            p1Hand.addCardsToBottom(List.of(p1CardId, p2CardId));
+            currentTurnPlayerId = player1Id;
+            turnWinnerPlayerId = player1Id;
+        } else {
+            p2Hand.addCardsToBottom(List.of(p1CardId, p2CardId));
+            currentTurnPlayerId = player2Id;
+            turnWinnerPlayerId = player2Id;
+        }
+
+        this.player1Hand = p1Hand.getCardIds();
+        this.player2Hand = p2Hand.getCardIds();
         this.updatedAt = Instant.now();
+
+        return turnWinnerPlayerId;
     }
 
-    public UUID getCurrentTurnPlayerId() {
-        return currentTurnPlayerId;
-    }
-
-    public void setCurrentTurnPlayerId(UUID currentTurnPlayerId) {
-        this.currentTurnPlayerId = currentTurnPlayerId;
-        this.updatedAt = Instant.now();
-    }
-
-    public List<UUID> getPlayer1Hand() {
-        return player1Hand;
-    }
-
-    public void setPlayer1Hand(List<UUID> player1Hand) {
-        this.player1Hand = player1Hand;
-        this.updatedAt = Instant.now();
-    }
-
-    public List<UUID> getPlayer2Hand() {
-        return player2Hand;
-    }
-
-    public void setPlayer2Hand(List<UUID> player2Hand) {
-        this.player2Hand = player2Hand;
-        this.updatedAt = Instant.now();
-    }
-
-    public UUID getWinnerId() {
-        return winnerId;
-    }
-
-    public void setWinnerId(UUID winnerId) {
-        this.winnerId = winnerId;
-        this.updatedAt = Instant.now();
-    }
-
-    public Instant getTurnDeadline() {
-        return turnDeadline;
-    }
-
-    public void setTurnDeadline(Instant turnDeadline) {
-        this.turnDeadline = turnDeadline;
-        this.updatedAt = Instant.now();
-    }
-
-    public Instant getCreatedAt() {
-        return createdAt;
-    }
-
-    public Instant getUpdatedAt() {
-        return updatedAt;
+    /**
+     * Checks if the game is over (either player has no cards left)
+     * and transitions to FINISHED if so.
+     */
+    public void checkGameOver() {
+        if (player1Hand.isEmpty()) {
+            this.winnerId = player2Id;
+            this.status = GameStatus.FINISHED;
+            this.updatedAt = Instant.now();
+        } else if (player2Hand.isEmpty()) {
+            this.winnerId = player1Id;
+            this.status = GameStatus.FINISHED;
+            this.updatedAt = Instant.now();
+        }
     }
 }
