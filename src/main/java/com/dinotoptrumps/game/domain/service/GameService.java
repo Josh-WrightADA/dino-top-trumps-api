@@ -1,7 +1,12 @@
 package com.dinotoptrumps.game.domain.service;
 
+import com.dinotoptrumps.game.domain.exception.InvalidGameStateException;
+import com.dinotoptrumps.game.domain.exception.GameNotFoundException;
+import com.dinotoptrumps.game.domain.exception.NotYourTurnException;
+import com.dinotoptrumps.game.domain.model.Card;
 import com.dinotoptrumps.game.domain.model.Game;
 import com.dinotoptrumps.game.domain.model.GameStatus;
+import com.dinotoptrumps.game.domain.model.Hand;
 import com.dinotoptrumps.game.domain.model.Stat;
 import com.dinotoptrumps.game.domain.model.Turn;
 import com.dinotoptrumps.game.ports.in.ForCreatingGame;
@@ -12,9 +17,8 @@ import com.dinotoptrumps.game.ports.in.ForPlayingTurn;
 import com.dinotoptrumps.game.ports.out.ForLoadingCards;
 import com.dinotoptrumps.game.ports.out.ForPersistingGames;
 import com.dinotoptrumps.game.ports.out.ForPersistingTurns;
-import com.dinotoptrumps.game.domain.exception.GameNotFoundException;
-import com.dinotoptrumps.game.domain.exception.NotYourTurnException;
 
+import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 
@@ -47,35 +51,89 @@ public class GameService implements ForCreatingGame, ForJoiningGame, ForPlayingT
 
     @Override
     public Game joinGame(UUID gameId, UUID playerId) {
-        // TODO: Find the game, set player2, deal cards, set status to IN_PROGRESS
-        Game game = gameRepository.findById(gameId)
-                .orElseThrow(() -> new GameNotFoundException("Game not found: " + gameId));
+        Game game = findGameOrThrow(gameId);
 
-        // TODO: Validate game is in WAITING status and player is not player1
-        // TODO: Deal cards and start the game
+        if (game.getStatus() != GameStatus.WAITING) {
+            throw new InvalidGameStateException("Game is not in WAITING status");
+        }
+        if (game.getPlayer1Id().equals(playerId)) {
+            throw new InvalidGameStateException("Cannot join own game");
+        }
+
+        List<UUID> cardIds = cardLoader.loadAllCards().stream()
+                .map(Card::getId)
+                .toList();
+        Hand[] hands = deckService.deal(cardIds);
+
+        game.start(playerId, hands);
 
         return gameRepository.save(game);
     }
 
     @Override
     public Turn playTurn(UUID gameId, UUID playerId, Stat chosenStat) {
-        // TODO: Validate it's the player's turn
-        // TODO: Get top cards from both hands
-        // TODO: Compare chosen stat
-        // TODO: Award cards to winner
-        // TODO: Check if game is over
-        // TODO: Persist turn and updated game state
-        throw new UnsupportedOperationException("Not yet implemented");
+        Game game = findGameOrThrow(gameId);
+        validateGameInProgress(game);
+        validatePlayerTurn(game, playerId);
+
+        UUID p1CardId = game.getPlayer1Hand().getFirst();
+        UUID p2CardId = game.getPlayer2Hand().getFirst();
+
+        Card p1Card = loadCardOrThrow(p1CardId);
+        Card p2Card = loadCardOrThrow(p2CardId);
+
+        UUID winningCardId = statComparisonService.compare(p1Card, p2Card, chosenStat);
+        UUID turnWinnerPlayerId = game.resolveRound(winningCardId, p1CardId, p2CardId);
+        game.checkGameOver();
+
+        gameRepository.save(game);
+
+        Turn turn = new Turn(
+                UUID.randomUUID(),
+                gameId,
+                turnRepository.countByGameId(gameId) + 1,
+                playerId,
+                p1CardId,
+                p2CardId,
+                chosenStat,
+                chosenStat.getValueFromCard(p1Card),
+                chosenStat.getValueFromCard(p2Card),
+                turnWinnerPlayerId,
+                Instant.now()
+        );
+
+        return turnRepository.save(turn);
     }
 
     @Override
     public Game getGameState(UUID gameId) {
-        return gameRepository.findById(gameId)
-                .orElseThrow(() -> new GameNotFoundException("Game not found: " + gameId));
+        return findGameOrThrow(gameId);
     }
 
     @Override
     public List<Game> getMatchHistory(UUID playerId) {
         return gameRepository.findByPlayerIdAndStatus(playerId, GameStatus.FINISHED);
+    }
+
+    private Game findGameOrThrow(UUID gameId) {
+        return gameRepository.findById(gameId)
+                .orElseThrow(() -> new GameNotFoundException("Game not found: " + gameId));
+    }
+
+    private Card loadCardOrThrow(UUID cardId) {
+        return cardLoader.findById(cardId)
+                .orElseThrow(() -> new InvalidGameStateException("Card not found: " + cardId));
+    }
+
+    private void validateGameInProgress(Game game) {
+        if (game.getStatus() != GameStatus.IN_PROGRESS) {
+            throw new InvalidGameStateException("Game is not in IN_PROGRESS status");
+        }
+    }
+
+    private void validatePlayerTurn(Game game, UUID playerId) {
+        if (!game.getCurrentTurnPlayerId().equals(playerId)) {
+            throw new NotYourTurnException("Not this player's turn");
+        }
     }
 }
