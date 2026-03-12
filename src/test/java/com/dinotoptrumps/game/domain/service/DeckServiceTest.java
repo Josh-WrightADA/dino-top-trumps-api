@@ -72,10 +72,9 @@ class DeckServiceTest {
     }
 
     @Test
-    void deal_emptyDeck_returnsTwoEmptyHands() {
-        Hand[] hands = deckService.deal(new ArrayList<>());
-        assertTrue(hands[0].isEmpty());
-        assertTrue(hands[1].isEmpty());
+    void deal_insufficientCards_throwsException() {
+        assertThrows(IllegalArgumentException.class, () -> deckService.deal(new ArrayList<>()));
+        assertThrows(IllegalArgumentException.class, () -> deckService.deal(List.of(UUID.randomUUID())));
     }
 
     private List<UUID> createCardIds(int count) {

@@ -1,6 +1,7 @@
 package com.dinotoptrumps.game.domain.model;
 
 import java.time.Instant;
+import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 
@@ -58,8 +59,8 @@ public class Game {
     public UUID getPlayer2Id() { return player2Id; }
     public GameStatus getStatus() { return status; }
     public UUID getCurrentTurnPlayerId() { return currentTurnPlayerId; }
-    public List<UUID> getPlayer1Hand() { return player1Hand; }
-    public List<UUID> getPlayer2Hand() { return player2Hand; }
+    public List<UUID> getPlayer1Hand() { return Collections.unmodifiableList(player1Hand); }
+    public List<UUID> getPlayer2Hand() { return Collections.unmodifiableList(player2Hand); }
     public UUID getWinnerId() { return winnerId; }
     public Instant getTurnDeadline() { return turnDeadline; }
     public Instant getCreatedAt() { return createdAt; }
