@@ -4,6 +4,7 @@ import com.dinotoptrumps.game.adapters.in.dto.GameStateResponse;
 import com.dinotoptrumps.game.adapters.in.dto.MatchHistoryEntry;
 import com.dinotoptrumps.game.adapters.in.dto.PlayTurnRequest;
 import com.dinotoptrumps.game.adapters.in.dto.TurnResponse;
+import com.dinotoptrumps.game.domain.exception.GameNotFoundException;
 import com.dinotoptrumps.game.domain.model.Game;
 import com.dinotoptrumps.game.domain.model.Turn;
 import com.dinotoptrumps.game.ports.in.ForCreatingGame;
@@ -72,6 +73,7 @@ public class GameController {
                                                           Authentication authentication) {
         UUID playerId = (UUID) authentication.getPrincipal();
         Game game = forGettingGameState.getGameState(gameId);
+        validatePlayerInGame(game, playerId);
         return ResponseEntity.ok(GameStateResponse.forPlayer(game, playerId));
     }
 
@@ -83,5 +85,11 @@ public class GameController {
                 .map(game -> MatchHistoryEntry.from(game, playerId))
                 .toList();
         return ResponseEntity.ok(history);
+    }
+
+    private void validatePlayerInGame(Game game, UUID playerId) {
+        if (!game.isPlayer1(playerId) && !playerId.equals(game.getPlayer2Id())) {
+            throw new GameNotFoundException("Game not found: " + game.getId());
+        }
     }
 }
