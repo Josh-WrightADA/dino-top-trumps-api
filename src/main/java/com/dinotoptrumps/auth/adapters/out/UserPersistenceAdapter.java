@@ -4,6 +4,7 @@ import com.dinotoptrumps.auth.domain.model.User;
 import com.dinotoptrumps.auth.ports.out.ForPersistingUsers;
 import org.springframework.stereotype.Component;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -39,5 +40,13 @@ public class UserPersistenceAdapter implements ForPersistingUsers {
     public Optional<User> findById(UUID id) {
         return userJpaRepository.findById(id)
                 .map(UserMapper::toDomain);
+    }
+
+    @Override
+    public List<User> findTopByEloRating(int limit) {
+        return userJpaRepository.findAllByOrderByEloRatingDesc().stream()
+                .limit(limit)
+                .map(UserMapper::toDomain)
+                .toList();
     }
 }
