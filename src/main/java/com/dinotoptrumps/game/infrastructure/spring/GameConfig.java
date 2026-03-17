@@ -7,6 +7,7 @@ import com.dinotoptrumps.game.domain.service.StatComparisonService;
 import com.dinotoptrumps.game.ports.out.ForLoadingCards;
 import com.dinotoptrumps.game.ports.out.ForPersistingGames;
 import com.dinotoptrumps.game.ports.out.ForPersistingTurns;
+import com.dinotoptrumps.game.ports.out.ForUpdatingPlayerStats;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -32,10 +33,11 @@ public class GameConfig {
     public GameService gameService(ForPersistingGames gameRepository,
                                    ForPersistingTurns turnRepository,
                                    ForLoadingCards cardLoader,
+                                   ForUpdatingPlayerStats playerStats,
                                    DeckService deckService,
                                    StatComparisonService statComparisonService,
                                    EloService eloService) {
         return new GameService(gameRepository, turnRepository, cardLoader,
-                deckService, statComparisonService, eloService);
+                playerStats, deckService, statComparisonService, eloService);
     }
 }
