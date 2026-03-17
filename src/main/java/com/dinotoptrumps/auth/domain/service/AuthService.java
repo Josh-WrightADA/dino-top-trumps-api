@@ -9,7 +9,6 @@ import com.dinotoptrumps.auth.ports.out.ForPersistingUsers;
 import com.dinotoptrumps.auth.domain.exception.UserAlreadyExistsException;
 import com.dinotoptrumps.auth.domain.exception.InvalidCredentialsException;
 
-import java.util.Optional;
 import java.util.UUID;
 
 public class AuthService implements ForRegistering, ForAuthenticating, ForManagingProfile {
