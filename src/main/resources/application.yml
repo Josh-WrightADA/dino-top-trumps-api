@@ -25,6 +25,15 @@ jwt:
 cors:
   allowed-origins: http://localhost:5173
 
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health
+  endpoint:
+    health:
+      show-details: never
+
 ---
 spring:
   config:
@@ -47,3 +56,12 @@ jwt:
 
 cors:
   allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:5173}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health
+  endpoint:
+    health:
+      show-details: never
