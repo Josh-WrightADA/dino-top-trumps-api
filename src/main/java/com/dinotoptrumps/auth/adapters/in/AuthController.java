@@ -1,6 +1,13 @@
 package com.dinotoptrumps.auth.adapters.in;
 
-import com.dinotoptrumps.auth.adapters.in.dto.*;
+import com.dinotoptrumps.auth.adapters.in.dto.ForgotPasswordRequest;
+import com.dinotoptrumps.auth.adapters.in.dto.LoginRequest;
+import com.dinotoptrumps.auth.adapters.in.dto.LoginResponse;
+import com.dinotoptrumps.auth.adapters.in.dto.MessageResponse;
+import com.dinotoptrumps.auth.adapters.in.dto.ProfileResponse;
+import com.dinotoptrumps.auth.adapters.in.dto.RegisterRequest;
+import com.dinotoptrumps.auth.adapters.in.dto.ResetPasswordRequest;
+import com.dinotoptrumps.auth.adapters.in.dto.UpdateProfileRequest;
 import com.dinotoptrumps.auth.domain.model.User;
 import com.dinotoptrumps.auth.domain.model.UserProfile;
 import com.dinotoptrumps.auth.ports.in.ForAuthenticating;
@@ -11,7 +18,12 @@ import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.util.UUID;
 
