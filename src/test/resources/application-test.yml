@@ -17,3 +17,10 @@ jwt:
 
 cors:
   allowed-origins: http://localhost:5173
+
+sendgrid:
+  api-key: disabled
+  from-email: test@example.com
+
+app:
+  frontend-url: http://localhost:5173
