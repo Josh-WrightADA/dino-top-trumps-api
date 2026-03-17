@@ -23,8 +23,13 @@ import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 public class GameService implements ForCreatingGame, ForJoiningGame, ForPlayingTurn,
         ForGettingGameState, ForGettingMatchHistory {
+
+    private static final Logger log = LoggerFactory.getLogger(GameService.class);
 
     private final ForPersistingGames gameRepository;
     private final ForPersistingTurns turnRepository;
@@ -50,7 +55,9 @@ public class GameService implements ForCreatingGame, ForJoiningGame, ForPlayingT
     @Override
     public Game createGame(UUID playerId) {
         Game game = Game.create(playerId);
-        return gameRepository.save(game);
+        Game saved = gameRepository.save(game);
+        log.info("Game created: {}", saved.getId());
+        return saved;
     }
 
     @Override
@@ -71,13 +78,16 @@ public class GameService implements ForCreatingGame, ForJoiningGame, ForPlayingT
 
         game.start(playerId, hands);
 
-        return gameRepository.save(game);
+        Game saved = gameRepository.save(game);
+        log.info("Game {} started — cards dealt", gameId);
+        return saved;
     }
 
     @Override
     public Turn playTurn(UUID gameId, UUID playerId, Stat chosenStat) {
         Game game = findGameOrThrow(gameId);
         validateGameInProgress(game);
+        validatePlayerIsParticipant(game, playerId);
         validatePlayerTurn(game, playerId);
 
         UUID p1CardId = game.getPlayer1Hand().getFirst();
@@ -97,12 +107,14 @@ public class GameService implements ForCreatingGame, ForJoiningGame, ForPlayingT
                     ? game.getPlayer2Id()
                     : game.getPlayer1Id();
             playerStats.updateStatsAfterGame(game.getWinnerId(), loserId);
+            log.info("Game {} finished — winner determined", gameId);
         }
 
+        int turnNumber = turnRepository.countByGameId(gameId) + 1;
         Turn turn = new Turn(
                 UUID.randomUUID(),
                 gameId,
-                turnRepository.countByGameId(gameId) + 1,
+                turnNumber,
                 playerId,
                 p1CardId,
                 p2CardId,
@@ -113,7 +125,9 @@ public class GameService implements ForCreatingGame, ForJoiningGame, ForPlayingT
                 Instant.now()
         );
 
-        return turnRepository.save(turn);
+        Turn saved = turnRepository.save(turn);
+        log.info("Turn {} played in game {}", saved.getTurnNumber(), gameId);
+        return saved;
     }
 
     @Override
@@ -139,6 +153,12 @@ public class GameService implements ForCreatingGame, ForJoiningGame, ForPlayingT
     private void validateGameInProgress(Game game) {
         if (game.getStatus() != GameStatus.IN_PROGRESS) {
             throw new InvalidGameStateException("Game is not in IN_PROGRESS status");
+        }
+    }
+
+    private void validatePlayerIsParticipant(Game game, UUID playerId) {
+        if (!game.isPlayer1(playerId) && !playerId.equals(game.getPlayer2Id())) {
+            throw new NotYourTurnException("Player is not a participant in this game");
         }
     }
 

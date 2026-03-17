@@ -139,6 +139,37 @@ class GameControllerIntegrationTest {
                 .andExpect(jsonPath("$[0].eloRating").isNumber());
     }
 
+    @Test
+    void playTurn_invalidStat_returns400() throws Exception {
+        String token1 = registerAndLogin("statplayer1", "sp1@test.com");
+        String token2 = registerAndLogin("statplayer2", "sp2@test.com");
+
+        String gameId = createGame(token1);
+        joinGame(gameId, token2);
+
+        mockMvc.perform(post("/api/v1/games/" + gameId + "/turns")
+                        .header("Authorization", "Bearer " + token1)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"stat\":\"FIRE\"}"))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void playTurn_nonParticipant_rejected() throws Exception {
+        String token1 = registerAndLogin("turnhost", "th@test.com");
+        String token2 = registerAndLogin("turnjoiner", "tj@test.com");
+        String token3 = registerAndLogin("turnintruder", "ti@test.com");
+
+        String gameId = createGame(token1);
+        joinGame(gameId, token2);
+
+        mockMvc.perform(post("/api/v1/games/" + gameId + "/turns")
+                        .header("Authorization", "Bearer " + token3)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(Map.of("stat", "STRENGTH"))))
+                .andExpect(status().isForbidden());
+    }
+
     private void registerUser(String username, String email) throws Exception {
         mockMvc.perform(post("/api/v1/auth/register")
                 .contentType(MediaType.APPLICATION_JSON)

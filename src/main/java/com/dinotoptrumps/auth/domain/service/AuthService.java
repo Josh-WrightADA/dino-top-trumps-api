@@ -11,7 +11,12 @@ import com.dinotoptrumps.auth.domain.exception.InvalidCredentialsException;
 
 import java.util.UUID;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 public class AuthService implements ForRegistering, ForAuthenticating, ForManagingProfile {
+
+    private static final Logger log = LoggerFactory.getLogger(AuthService.class);
 
     private final ForPersistingUsers userRepository;
     private final ForEncodingPasswords passwordEncoder;
@@ -32,7 +37,9 @@ public class AuthService implements ForRegistering, ForAuthenticating, ForManagi
 
         String hashedPassword = passwordEncoder.encode(rawPassword);
         User user = User.create(username, email, hashedPassword);
-        return userRepository.save(user);
+        User saved = userRepository.save(user);
+        log.info("User registered: {}", username);
+        return saved;
     }
 
     @Override
@@ -43,6 +50,7 @@ public class AuthService implements ForRegistering, ForAuthenticating, ForManagi
         if (!passwordEncoder.matches(rawPassword, user.getPasswordHash())) {
             throw new InvalidCredentialsException("Invalid username or password");
         }
+        log.info("User authenticated: {}", username);
         return user;
     }
 
