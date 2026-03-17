@@ -7,6 +7,7 @@ import com.dinotoptrumps.game.adapters.in.dto.TurnResponse;
 import com.dinotoptrumps.game.domain.exception.GameNotFoundException;
 import com.dinotoptrumps.game.domain.model.Game;
 import com.dinotoptrumps.game.domain.model.Turn;
+import com.dinotoptrumps.auth.ports.in.ForManagingProfile;
 import com.dinotoptrumps.game.ports.in.ForCreatingGame;
 import com.dinotoptrumps.game.ports.in.ForGettingGameState;
 import com.dinotoptrumps.game.ports.in.ForGettingMatchHistory;
@@ -30,17 +31,20 @@ public class GameController {
     private final ForPlayingTurn forPlayingTurn;
     private final ForGettingGameState forGettingGameState;
     private final ForGettingMatchHistory forGettingMatchHistory;
+    private final ForManagingProfile forManagingProfile;
 
     public GameController(ForCreatingGame forCreatingGame,
                           ForJoiningGame forJoiningGame,
                           ForPlayingTurn forPlayingTurn,
                           ForGettingGameState forGettingGameState,
-                          ForGettingMatchHistory forGettingMatchHistory) {
+                          ForGettingMatchHistory forGettingMatchHistory,
+                          ForManagingProfile forManagingProfile) {
         this.forCreatingGame = forCreatingGame;
         this.forJoiningGame = forJoiningGame;
         this.forPlayingTurn = forPlayingTurn;
         this.forGettingGameState = forGettingGameState;
         this.forGettingMatchHistory = forGettingMatchHistory;
+        this.forManagingProfile = forManagingProfile;
     }
 
     @PostMapping
@@ -82,7 +86,13 @@ public class GameController {
         UUID playerId = (UUID) authentication.getPrincipal();
         List<Game> games = forGettingMatchHistory.getMatchHistory(playerId);
         List<MatchHistoryEntry> history = games.stream()
-                .map(game -> MatchHistoryEntry.from(game, playerId))
+                .map(game -> {
+                    UUID opponentId = game.isPlayer1(playerId)
+                            ? game.getPlayer2Id()
+                            : game.getPlayer1Id();
+                    String opponentName = forManagingProfile.getProfile(opponentId).getDisplayName();
+                    return MatchHistoryEntry.from(game, playerId, opponentName);
+                })
                 .toList();
         return ResponseEntity.ok(history);
     }
