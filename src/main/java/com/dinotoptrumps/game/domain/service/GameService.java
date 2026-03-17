@@ -17,6 +17,7 @@ import com.dinotoptrumps.game.ports.in.ForPlayingTurn;
 import com.dinotoptrumps.game.ports.out.ForLoadingCards;
 import com.dinotoptrumps.game.ports.out.ForPersistingGames;
 import com.dinotoptrumps.game.ports.out.ForPersistingTurns;
+import com.dinotoptrumps.game.ports.out.ForUpdatingPlayerStats;
 
 import java.time.Instant;
 import java.util.List;
@@ -28,16 +29,19 @@ public class GameService implements ForCreatingGame, ForJoiningGame, ForPlayingT
     private final ForPersistingGames gameRepository;
     private final ForPersistingTurns turnRepository;
     private final ForLoadingCards cardLoader;
+    private final ForUpdatingPlayerStats playerStats;
     private final DeckService deckService;
     private final StatComparisonService statComparisonService;
     private final EloService eloService;
 
     public GameService(ForPersistingGames gameRepository, ForPersistingTurns turnRepository,
-                       ForLoadingCards cardLoader, DeckService deckService,
-                       StatComparisonService statComparisonService, EloService eloService) {
+                       ForLoadingCards cardLoader, ForUpdatingPlayerStats playerStats,
+                       DeckService deckService, StatComparisonService statComparisonService,
+                       EloService eloService) {
         this.gameRepository = gameRepository;
         this.turnRepository = turnRepository;
         this.cardLoader = cardLoader;
+        this.playerStats = playerStats;
         this.deckService = deckService;
         this.statComparisonService = statComparisonService;
         this.eloService = eloService;
@@ -87,6 +91,13 @@ public class GameService implements ForCreatingGame, ForJoiningGame, ForPlayingT
         game.checkGameOver();
 
         gameRepository.save(game);
+
+        if (game.getStatus() == GameStatus.FINISHED) {
+            UUID loserId = game.getWinnerId().equals(game.getPlayer1Id())
+                    ? game.getPlayer2Id()
+                    : game.getPlayer1Id();
+            playerStats.updateStatsAfterGame(game.getWinnerId(), loserId);
+        }
 
         Turn turn = new Turn(
                 UUID.randomUUID(),

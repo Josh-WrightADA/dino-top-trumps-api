@@ -7,6 +7,7 @@ import com.dinotoptrumps.game.domain.model.*;
 import com.dinotoptrumps.game.ports.out.ForLoadingCards;
 import com.dinotoptrumps.game.ports.out.ForPersistingGames;
 import com.dinotoptrumps.game.ports.out.ForPersistingTurns;
+import com.dinotoptrumps.game.ports.out.ForUpdatingPlayerStats;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -26,6 +27,7 @@ class GameServiceTest {
     private ForPersistingGames gameRepository;
     private ForPersistingTurns turnRepository;
     private ForLoadingCards cardLoader;
+    private ForUpdatingPlayerStats playerStats;
 
     private GameService gameService;
 
@@ -42,9 +44,10 @@ class GameServiceTest {
         gameRepository = mock(ForPersistingGames.class);
         turnRepository = mock(ForPersistingTurns.class);
         cardLoader = mock(ForLoadingCards.class);
+        playerStats = mock(ForUpdatingPlayerStats.class);
 
         gameService = new GameService(gameRepository, turnRepository, cardLoader,
-                new DeckService(), new StatComparisonService(), new EloService());
+                playerStats, new DeckService(), new StatComparisonService(), new EloService());
 
         strongDino = new Card(UUID.randomUUID(), "T-Rex", "Tyrant Lizard", "Carnivore",
                 "Cretaceous", null, 60, 80, 50, 40, 95);
@@ -196,6 +199,24 @@ class GameServiceTest {
             gameService.playTurn(game.getId(), player1Id, Stat.STRENGTH);
 
             verify(turnRepository).save(any(Turn.class));
+        }
+
+        @Test
+        void gameFinished_updatesPlayerStats() {
+            Game game = setupGameWithMocks(strongDino, fastDino);
+
+            gameService.playTurn(game.getId(), player1Id, Stat.STRENGTH);
+
+            verify(playerStats).updateStatsAfterGame(player1Id, player2Id);
+        }
+
+        @Test
+        void gameNotFinished_doesNotUpdatePlayerStats() {
+            Game game = setupMultiCardGameWithMocks();
+
+            gameService.playTurn(game.getId(), player1Id, Stat.STRENGTH);
+
+            verify(playerStats, never()).updateStatsAfterGame(any(), any());
         }
 
         private Game setupGameWithMocks(Card p1Card, Card p2Card) {
