@@ -97,7 +97,7 @@ class GameMapperTest {
         Game original = new Game(
                 gameId, p1, p2, GameStatus.IN_PROGRESS, currentTurn,
                 List.of(card1, card2), List.of(card3),
-                null, null, now, now
+                List.of(), null, null, now, now
         );
 
         GameJpaEntity entity = GameMapper.toEntity(original);
@@ -123,7 +123,7 @@ class GameMapperTest {
         Game original = new Game(
                 gameId, p1, null, GameStatus.WAITING, null,
                 List.of(), List.of(),
-                null, null, now, now
+                List.of(), null, null, now, now
         );
 
         GameJpaEntity entity = GameMapper.toEntity(original);

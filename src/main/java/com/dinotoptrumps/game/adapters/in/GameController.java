@@ -9,9 +9,11 @@ import com.dinotoptrumps.game.domain.model.Game;
 import com.dinotoptrumps.game.domain.model.Turn;
 import com.dinotoptrumps.auth.ports.in.ForManagingProfile;
 import com.dinotoptrumps.game.ports.in.ForCreatingGame;
+import com.dinotoptrumps.game.ports.in.ForForfeitingGame;
 import com.dinotoptrumps.game.ports.in.ForGettingGameState;
 import com.dinotoptrumps.game.ports.in.ForGettingMatchHistory;
 import com.dinotoptrumps.game.ports.in.ForJoiningGame;
+import com.dinotoptrumps.game.ports.in.ForListingGames;
 import com.dinotoptrumps.game.ports.in.ForPlayingTurn;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
@@ -34,6 +36,8 @@ public class GameController {
     private final ForCreatingGame forCreatingGame;
     private final ForJoiningGame forJoiningGame;
     private final ForPlayingTurn forPlayingTurn;
+    private final ForForfeitingGame forForfeitingGame;
+    private final ForListingGames forListingGames;
     private final ForGettingGameState forGettingGameState;
     private final ForGettingMatchHistory forGettingMatchHistory;
     private final ForManagingProfile forManagingProfile;
@@ -41,12 +45,16 @@ public class GameController {
     public GameController(ForCreatingGame forCreatingGame,
                           ForJoiningGame forJoiningGame,
                           ForPlayingTurn forPlayingTurn,
+                          ForForfeitingGame forForfeitingGame,
+                          ForListingGames forListingGames,
                           ForGettingGameState forGettingGameState,
                           ForGettingMatchHistory forGettingMatchHistory,
                           ForManagingProfile forManagingProfile) {
         this.forCreatingGame = forCreatingGame;
         this.forJoiningGame = forJoiningGame;
         this.forPlayingTurn = forPlayingTurn;
+        this.forForfeitingGame = forForfeitingGame;
+        this.forListingGames = forListingGames;
         this.forGettingGameState = forGettingGameState;
         this.forGettingMatchHistory = forGettingMatchHistory;
         this.forManagingProfile = forManagingProfile;
@@ -75,6 +83,32 @@ public class GameController {
         UUID playerId = (UUID) authentication.getPrincipal();
         Turn turn = forPlayingTurn.playTurn(gameId, playerId, request.stat());
         return ResponseEntity.ok(TurnResponse.from(turn));
+    }
+
+    @GetMapping("/available")
+    public ResponseEntity<List<GameStateResponse>> getAvailableGames(Authentication authentication) {
+        UUID playerId = (UUID) authentication.getPrincipal();
+        List<GameStateResponse> games = forListingGames.getAvailableGames().stream()
+                .map(game -> GameStateResponse.forPlayer(game, playerId))
+                .toList();
+        return ResponseEntity.ok(games);
+    }
+
+    @GetMapping("/active")
+    public ResponseEntity<List<GameStateResponse>> getActiveGames(Authentication authentication) {
+        UUID playerId = (UUID) authentication.getPrincipal();
+        List<GameStateResponse> games = forListingGames.getActiveGames(playerId).stream()
+                .map(game -> GameStateResponse.forPlayer(game, playerId))
+                .toList();
+        return ResponseEntity.ok(games);
+    }
+
+    @PostMapping("/{gameId}/forfeit")
+    public ResponseEntity<GameStateResponse> forfeitGame(@PathVariable UUID gameId,
+                                                         Authentication authentication) {
+        UUID playerId = (UUID) authentication.getPrincipal();
+        Game game = forForfeitingGame.forfeitGame(gameId, playerId);
+        return ResponseEntity.ok(GameStateResponse.forPlayer(game, playerId));
     }
 
     @GetMapping("/{gameId}")

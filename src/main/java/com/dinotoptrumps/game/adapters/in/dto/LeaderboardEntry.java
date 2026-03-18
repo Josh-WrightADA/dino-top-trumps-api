@@ -1,5 +1,7 @@
 package com.dinotoptrumps.game.adapters.in.dto;
 
+import com.dinotoptrumps.auth.domain.model.RankTier;
+
 import java.util.UUID;
 
 public record LeaderboardEntry(
@@ -8,5 +10,6 @@ public record LeaderboardEntry(
         String displayName,
         int eloRating,
         int gamesPlayed,
-        int gamesWon
+        int gamesWon,
+        RankTier rankTier
 ) {}

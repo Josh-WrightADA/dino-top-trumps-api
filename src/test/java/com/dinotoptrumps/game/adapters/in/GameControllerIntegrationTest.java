@@ -155,6 +155,43 @@ class GameControllerIntegrationTest {
     }
 
     @Test
+    void getAvailableGames_returnsWaitingGames() throws Exception {
+        String token1 = registerAndLogin("avail1", "av1@test.com");
+        createGame(token1);
+
+        mockMvc.perform(get("/api/v1/games/available")
+                        .header("Authorization", "Bearer " + token1))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", hasSize(greaterThan(0))))
+                .andExpect(jsonPath("$[0].status").value("WAITING"));
+    }
+
+    @Test
+    void getActiveGames_returnsPlayerGames() throws Exception {
+        String token1 = registerAndLogin("active1", "ac1@test.com");
+        createGame(token1);
+
+        mockMvc.perform(get("/api/v1/games/active")
+                        .header("Authorization", "Bearer " + token1))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", hasSize(1)));
+    }
+
+    @Test
+    void forfeitGame_asParticipant_finishesGame() throws Exception {
+        String token1 = registerAndLogin("forfhost", "fh@test.com");
+        String token2 = registerAndLogin("forfjoiner", "fj@test.com");
+
+        String gameId = createGame(token1);
+        joinGame(gameId, token2);
+
+        mockMvc.perform(post("/api/v1/games/" + gameId + "/forfeit")
+                        .header("Authorization", "Bearer " + token1))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value("FINISHED"));
+    }
+
+    @Test
     void playTurn_nonParticipant_rejected() throws Exception {
         String token1 = registerAndLogin("turnhost", "th@test.com");
         String token2 = registerAndLogin("turnjoiner", "tj@test.com");

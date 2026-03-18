@@ -1,6 +1,8 @@
 package com.dinotoptrumps.game.domain.model;
 
 import java.time.Instant;
+import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
@@ -14,14 +16,18 @@ public class Game {
     private UUID currentTurnPlayerId;
     private List<UUID> player1Hand;
     private List<UUID> player2Hand;
+    private List<UUID> drawPile;
     private UUID winnerId;
     private Instant turnDeadline;
     private final Instant createdAt;
     private Instant updatedAt;
 
+    private static final int TURN_TIME_SECONDS = 30;
+
     public Game(UUID id, UUID player1Id, UUID player2Id, GameStatus status,
                 UUID currentTurnPlayerId, List<UUID> player1Hand, List<UUID> player2Hand,
-                UUID winnerId, Instant turnDeadline, Instant createdAt, Instant updatedAt) {
+                List<UUID> drawPile, UUID winnerId, Instant turnDeadline,
+                Instant createdAt, Instant updatedAt) {
         this.id = id;
         this.player1Id = player1Id;
         this.player2Id = player2Id;
@@ -29,6 +35,7 @@ public class Game {
         this.currentTurnPlayerId = currentTurnPlayerId;
         this.player1Hand = player1Hand;
         this.player2Hand = player2Hand;
+        this.drawPile = drawPile;
         this.winnerId = winnerId;
         this.turnDeadline = turnDeadline;
         this.createdAt = createdAt;
@@ -43,6 +50,7 @@ public class Game {
                 null,
                 GameStatus.WAITING,
                 null,
+                List.of(),
                 List.of(),
                 List.of(),
                 null,
@@ -61,6 +69,7 @@ public class Game {
     public UUID getCurrentTurnPlayerId() { return currentTurnPlayerId; }
     public List<UUID> getPlayer1Hand() { return Collections.unmodifiableList(player1Hand); }
     public List<UUID> getPlayer2Hand() { return Collections.unmodifiableList(player2Hand); }
+    public List<UUID> getDrawPile() { return Collections.unmodifiableList(drawPile); }
     public UUID getWinnerId() { return winnerId; }
     public Instant getTurnDeadline() { return turnDeadline; }
     public Instant getCreatedAt() { return createdAt; }
@@ -72,6 +81,10 @@ public class Game {
         return player1Id.equals(playerId);
     }
 
+    public boolean isTimedOut() {
+        return turnDeadline != null && Instant.now().isAfter(turnDeadline);
+    }
+
     /**
      * Sets up the game when a second player joins: deals cards and starts play.
      */
@@ -79,19 +92,18 @@ public class Game {
         this.player2Id = joiningPlayerId;
         this.player1Hand = dealtHands[0].getCardIds();
         this.player2Hand = dealtHands[1].getCardIds();
+        this.drawPile = new ArrayList<>();
         this.status = GameStatus.IN_PROGRESS;
         this.currentTurnPlayerId = player1Id;
+        this.turnDeadline = Instant.now().plus(TURN_TIME_SECONDS, ChronoUnit.SECONDS);
         this.updatedAt = Instant.now();
     }
 
     /**
-     * Resolves a round of Top Trumps: removes top cards, awards them to the winner,
-     * and sets the next turn according to authentic rules (winner keeps turn).
-     *
-     * @param winningCardId the ID of the winning card, or null for a draw
-     * @param p1CardId player 1's card in this round
-     * @param p2CardId player 2's card in this round
-     * @return the winning player's UUID, or null for a draw
+     * Resolves a round of Top Trumps using authentic draw pile rules.
+     * On draw: both cards go to the draw pile.
+     * On win: winner gets both cards plus all cards from the draw pile.
+     * Winner keeps the turn (authentic rules).
      */
     public UUID resolveRound(UUID winningCardId, UUID p1CardId, UUID p2CardId) {
         Hand p1Hand = new Hand(player1Hand);
@@ -103,20 +115,31 @@ public class Game {
         UUID turnWinnerPlayerId = null;
 
         if (winningCardId == null) {
-            p1Hand.addCardsToBottom(List.of(p1CardId));
-            p2Hand.addCardsToBottom(List.of(p2CardId));
-        } else if (winningCardId.equals(p1CardId)) {
-            p1Hand.addCardsToBottom(List.of(p1CardId, p2CardId));
-            currentTurnPlayerId = player1Id;
-            turnWinnerPlayerId = player1Id;
+            List<UUID> pile = new ArrayList<>(drawPile);
+            pile.add(p1CardId);
+            pile.add(p2CardId);
+            this.drawPile = pile;
         } else {
-            p2Hand.addCardsToBottom(List.of(p1CardId, p2CardId));
-            currentTurnPlayerId = player2Id;
-            turnWinnerPlayerId = player2Id;
+            List<UUID> wonCards = new ArrayList<>();
+            wonCards.add(p1CardId);
+            wonCards.add(p2CardId);
+            wonCards.addAll(drawPile);
+            this.drawPile = new ArrayList<>();
+
+            if (winningCardId.equals(p1CardId)) {
+                p1Hand.addCardsToBottom(wonCards);
+                currentTurnPlayerId = player1Id;
+                turnWinnerPlayerId = player1Id;
+            } else {
+                p2Hand.addCardsToBottom(wonCards);
+                currentTurnPlayerId = player2Id;
+                turnWinnerPlayerId = player2Id;
+            }
         }
 
         this.player1Hand = p1Hand.getCardIds();
         this.player2Hand = p2Hand.getCardIds();
+        this.turnDeadline = Instant.now().plus(TURN_TIME_SECONDS, ChronoUnit.SECONDS);
         this.updatedAt = Instant.now();
 
         return turnWinnerPlayerId;
@@ -130,11 +153,23 @@ public class Game {
         if (player1Hand.isEmpty()) {
             this.winnerId = player2Id;
             this.status = GameStatus.FINISHED;
+            this.turnDeadline = null;
             this.updatedAt = Instant.now();
         } else if (player2Hand.isEmpty()) {
             this.winnerId = player1Id;
             this.status = GameStatus.FINISHED;
+            this.turnDeadline = null;
             this.updatedAt = Instant.now();
         }
+    }
+
+    /**
+     * Forfeits the game — the specified winner wins by forfeit.
+     */
+    public void forfeit(UUID winningPlayerId) {
+        this.winnerId = winningPlayerId;
+        this.status = GameStatus.FINISHED;
+        this.turnDeadline = null;
+        this.updatedAt = Instant.now();
     }
 }

@@ -49,4 +49,9 @@ public class UserPersistenceAdapter implements ForPersistingUsers {
                 .map(UserMapper::toDomain)
                 .toList();
     }
+
+    @Override
+    public void deleteById(UUID id) {
+        userJpaRepository.deleteById(id);
+    }
 }

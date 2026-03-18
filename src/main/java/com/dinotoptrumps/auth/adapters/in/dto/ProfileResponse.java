@@ -1,5 +1,6 @@
 package com.dinotoptrumps.auth.adapters.in.dto;
 
+import com.dinotoptrumps.auth.domain.model.RankTier;
 import com.dinotoptrumps.auth.domain.model.UserProfile;
 
 public record ProfileResponse(
@@ -7,7 +8,8 @@ public record ProfileResponse(
         String displayName,
         int eloRating,
         int gamesPlayed,
-        int gamesWon
+        int gamesWon,
+        RankTier rankTier
 ) {
     public static ProfileResponse from(UserProfile profile) {
         return new ProfileResponse(
@@ -15,7 +17,8 @@ public record ProfileResponse(
                 profile.getDisplayName(),
                 profile.getEloRating(),
                 profile.getGamesPlayed(),
-                profile.getGamesWon()
+                profile.getGamesWon(),
+                RankTier.fromElo(profile.getEloRating())
         );
     }
 }

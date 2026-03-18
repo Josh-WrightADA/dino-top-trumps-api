@@ -1,5 +1,6 @@
 package com.dinotoptrumps.game.adapters.in;
 
+import com.dinotoptrumps.auth.domain.model.RankTier;
 import com.dinotoptrumps.game.adapters.in.dto.LeaderboardEntry;
 import com.dinotoptrumps.auth.ports.in.ForGettingLeaderboard;
 import org.springframework.http.ResponseEntity;
@@ -31,7 +32,8 @@ public class LeaderboardController {
                         profile.getDisplayName(),
                         profile.getEloRating(),
                         profile.getGamesPlayed(),
-                        profile.getGamesWon()
+                        profile.getGamesWon(),
+                        RankTier.fromElo(profile.getEloRating())
                 ))
                 .toList();
         return ResponseEntity.ok(entries);

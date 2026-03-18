@@ -1,5 +1,6 @@
 package com.dinotoptrumps.auth.adapters.in;
 
+import com.dinotoptrumps.auth.adapters.in.dto.ChangePasswordRequest;
 import com.dinotoptrumps.auth.adapters.in.dto.ForgotPasswordRequest;
 import com.dinotoptrumps.auth.adapters.in.dto.LoginRequest;
 import com.dinotoptrumps.auth.adapters.in.dto.LoginResponse;
@@ -14,11 +15,14 @@ import com.dinotoptrumps.auth.ports.in.ForAuthenticating;
 import com.dinotoptrumps.auth.ports.in.ForManagingProfile;
 import com.dinotoptrumps.auth.ports.in.ForRegistering;
 import com.dinotoptrumps.auth.ports.in.ForResettingPassword;
+import com.dinotoptrumps.auth.ports.in.ForViewingPublicProfile;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -35,17 +39,20 @@ public class AuthController {
     private final ForAuthenticating forAuthenticating;
     private final ForManagingProfile forManagingProfile;
     private final ForResettingPassword forResettingPassword;
+    private final ForViewingPublicProfile forViewingPublicProfile;
     private final JwtTokenProvider jwtTokenProvider;
 
     public AuthController(ForRegistering forRegistering,
                           ForAuthenticating forAuthenticating,
                           ForManagingProfile forManagingProfile,
                           ForResettingPassword forResettingPassword,
+                          ForViewingPublicProfile forViewingPublicProfile,
                           JwtTokenProvider jwtTokenProvider) {
         this.forRegistering = forRegistering;
         this.forAuthenticating = forAuthenticating;
         this.forManagingProfile = forManagingProfile;
         this.forResettingPassword = forResettingPassword;
+        this.forViewingPublicProfile = forViewingPublicProfile;
         this.jwtTokenProvider = jwtTokenProvider;
     }
 
@@ -77,6 +84,27 @@ public class AuthController {
         UUID userId = (UUID) authentication.getPrincipal();
         User user = forManagingProfile.updateDisplayName(userId, request.displayName());
         UserProfile profile = UserProfile.fromUser(user);
+        return ResponseEntity.ok(ProfileResponse.from(profile));
+    }
+
+    @PutMapping("/change-password")
+    public ResponseEntity<MessageResponse> changePassword(Authentication authentication,
+                                                          @Valid @RequestBody ChangePasswordRequest request) {
+        UUID userId = (UUID) authentication.getPrincipal();
+        forManagingProfile.changePassword(userId, request.currentPassword(), request.newPassword());
+        return ResponseEntity.ok(new MessageResponse("Password changed successfully"));
+    }
+
+    @DeleteMapping("/me")
+    public ResponseEntity<Void> deleteAccount(Authentication authentication) {
+        UUID userId = (UUID) authentication.getPrincipal();
+        forManagingProfile.deleteAccount(userId);
+        return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/players/{id}")
+    public ResponseEntity<ProfileResponse> getPublicProfile(@PathVariable UUID id) {
+        UserProfile profile = forViewingPublicProfile.getPublicProfile(id);
         return ResponseEntity.ok(ProfileResponse.from(profile));
     }
 

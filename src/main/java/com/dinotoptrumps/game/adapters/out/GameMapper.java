@@ -20,6 +20,7 @@ public class GameMapper {
         entity.setCurrentTurnPlayerId(game.getCurrentTurnPlayerId());
         entity.setPlayer1Hand(serializeHand(game.getPlayer1Hand()));
         entity.setPlayer2Hand(serializeHand(game.getPlayer2Hand()));
+        entity.setDrawPile(serializeHand(game.getDrawPile()));
         entity.setWinnerId(game.getWinnerId());
         entity.setTurnDeadline(game.getTurnDeadline());
         entity.setCreatedAt(game.getCreatedAt());
@@ -36,6 +37,7 @@ public class GameMapper {
                 entity.getCurrentTurnPlayerId(),
                 deserializeHand(entity.getPlayer1Hand()),
                 deserializeHand(entity.getPlayer2Hand()),
+                deserializeHand(entity.getDrawPile()),
                 entity.getWinnerId(),
                 entity.getTurnDeadline(),
                 entity.getCreatedAt(),
