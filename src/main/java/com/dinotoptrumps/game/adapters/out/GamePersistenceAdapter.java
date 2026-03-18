@@ -39,4 +39,23 @@ public class GamePersistenceAdapter implements ForPersistingGames {
                 .map(GameMapper::toDomain)
                 .collect(Collectors.toList());
     }
+
+    @Override
+    public List<Game> findByStatus(GameStatus status) {
+        return gameJpaRepository.findByStatus(status.name())
+                .stream()
+                .map(GameMapper::toDomain)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<Game> findActiveByPlayerId(UUID playerId) {
+        List<String> activeStatuses = List.of(
+                GameStatus.WAITING.name(),
+                GameStatus.IN_PROGRESS.name());
+        return gameJpaRepository.findByPlayerIdAndStatusIn(playerId, activeStatuses)
+                .stream()
+                .map(GameMapper::toDomain)
+                .collect(Collectors.toList());
+    }
 }

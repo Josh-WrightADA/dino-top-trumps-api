@@ -13,6 +13,7 @@ import com.dinotoptrumps.game.ports.in.ForForfeitingGame;
 import com.dinotoptrumps.game.ports.in.ForGettingGameState;
 import com.dinotoptrumps.game.ports.in.ForGettingMatchHistory;
 import com.dinotoptrumps.game.ports.in.ForJoiningGame;
+import com.dinotoptrumps.game.ports.in.ForListingGames;
 import com.dinotoptrumps.game.ports.in.ForPlayingTurn;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
@@ -36,6 +37,7 @@ public class GameController {
     private final ForJoiningGame forJoiningGame;
     private final ForPlayingTurn forPlayingTurn;
     private final ForForfeitingGame forForfeitingGame;
+    private final ForListingGames forListingGames;
     private final ForGettingGameState forGettingGameState;
     private final ForGettingMatchHistory forGettingMatchHistory;
     private final ForManagingProfile forManagingProfile;
@@ -44,6 +46,7 @@ public class GameController {
                           ForJoiningGame forJoiningGame,
                           ForPlayingTurn forPlayingTurn,
                           ForForfeitingGame forForfeitingGame,
+                          ForListingGames forListingGames,
                           ForGettingGameState forGettingGameState,
                           ForGettingMatchHistory forGettingMatchHistory,
                           ForManagingProfile forManagingProfile) {
@@ -51,6 +54,7 @@ public class GameController {
         this.forJoiningGame = forJoiningGame;
         this.forPlayingTurn = forPlayingTurn;
         this.forForfeitingGame = forForfeitingGame;
+        this.forListingGames = forListingGames;
         this.forGettingGameState = forGettingGameState;
         this.forGettingMatchHistory = forGettingMatchHistory;
         this.forManagingProfile = forManagingProfile;
@@ -79,6 +83,24 @@ public class GameController {
         UUID playerId = (UUID) authentication.getPrincipal();
         Turn turn = forPlayingTurn.playTurn(gameId, playerId, request.stat());
         return ResponseEntity.ok(TurnResponse.from(turn));
+    }
+
+    @GetMapping("/available")
+    public ResponseEntity<List<GameStateResponse>> getAvailableGames(Authentication authentication) {
+        UUID playerId = (UUID) authentication.getPrincipal();
+        List<GameStateResponse> games = forListingGames.getAvailableGames().stream()
+                .map(game -> GameStateResponse.forPlayer(game, playerId))
+                .toList();
+        return ResponseEntity.ok(games);
+    }
+
+    @GetMapping("/active")
+    public ResponseEntity<List<GameStateResponse>> getActiveGames(Authentication authentication) {
+        UUID playerId = (UUID) authentication.getPrincipal();
+        List<GameStateResponse> games = forListingGames.getActiveGames(playerId).stream()
+                .map(game -> GameStateResponse.forPlayer(game, playerId))
+                .toList();
+        return ResponseEntity.ok(games);
     }
 
     @PostMapping("/{gameId}/forfeit")

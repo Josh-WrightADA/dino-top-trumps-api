@@ -14,6 +14,7 @@ import com.dinotoptrumps.game.ports.in.ForForfeitingGame;
 import com.dinotoptrumps.game.ports.in.ForGettingGameState;
 import com.dinotoptrumps.game.ports.in.ForGettingMatchHistory;
 import com.dinotoptrumps.game.ports.in.ForJoiningGame;
+import com.dinotoptrumps.game.ports.in.ForListingGames;
 import com.dinotoptrumps.game.ports.in.ForPlayingTurn;
 import com.dinotoptrumps.game.ports.out.ForLoadingCards;
 import com.dinotoptrumps.game.ports.out.ForPersistingGames;
@@ -28,7 +29,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class GameService implements ForCreatingGame, ForJoiningGame, ForPlayingTurn,
-        ForGettingGameState, ForGettingMatchHistory, ForForfeitingGame {
+        ForGettingGameState, ForGettingMatchHistory, ForForfeitingGame, ForListingGames {
 
     private static final Logger log = LoggerFactory.getLogger(GameService.class);
 
@@ -157,6 +158,16 @@ public class GameService implements ForCreatingGame, ForJoiningGame, ForPlayingT
     @Override
     public List<Game> getMatchHistory(UUID playerId) {
         return gameRepository.findByPlayerIdAndStatus(playerId, GameStatus.FINISHED);
+    }
+
+    @Override
+    public List<Game> getAvailableGames() {
+        return gameRepository.findByStatus(GameStatus.WAITING);
+    }
+
+    @Override
+    public List<Game> getActiveGames(UUID playerId) {
+        return gameRepository.findActiveByPlayerId(playerId);
     }
 
     private Game findGameOrThrow(UUID gameId) {
