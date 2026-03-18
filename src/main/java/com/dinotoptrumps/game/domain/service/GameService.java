@@ -10,6 +10,7 @@ import com.dinotoptrumps.game.domain.model.Hand;
 import com.dinotoptrumps.game.domain.model.Stat;
 import com.dinotoptrumps.game.domain.model.Turn;
 import com.dinotoptrumps.game.ports.in.ForCreatingGame;
+import com.dinotoptrumps.game.ports.in.ForForfeitingGame;
 import com.dinotoptrumps.game.ports.in.ForGettingGameState;
 import com.dinotoptrumps.game.ports.in.ForGettingMatchHistory;
 import com.dinotoptrumps.game.ports.in.ForJoiningGame;
@@ -27,7 +28,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class GameService implements ForCreatingGame, ForJoiningGame, ForPlayingTurn,
-        ForGettingGameState, ForGettingMatchHistory {
+        ForGettingGameState, ForGettingMatchHistory, ForForfeitingGame {
 
     private static final Logger log = LoggerFactory.getLogger(GameService.class);
 
@@ -88,6 +89,7 @@ public class GameService implements ForCreatingGame, ForJoiningGame, ForPlayingT
         Game game = findGameOrThrow(gameId);
         validateGameInProgress(game);
         validatePlayerIsParticipant(game, playerId);
+        handleTimeoutIfExpired(game, gameId);
         validatePlayerTurn(game, playerId);
 
         UUID p1CardId = game.getPlayer1Hand().getFirst();
@@ -131,6 +133,23 @@ public class GameService implements ForCreatingGame, ForJoiningGame, ForPlayingT
     }
 
     @Override
+    public Game forfeitGame(UUID gameId, UUID playerId) {
+        Game game = findGameOrThrow(gameId);
+        validateGameInProgress(game);
+        validatePlayerIsParticipant(game, playerId);
+
+        UUID opponentId = game.isPlayer1(playerId)
+                ? game.getPlayer2Id()
+                : game.getPlayer1Id();
+
+        game.forfeit(opponentId);
+        gameRepository.save(game);
+        playerStats.updateStatsAfterGame(opponentId, playerId);
+        log.info("Game {} forfeited by player", gameId);
+        return game;
+    }
+
+    @Override
     public Game getGameState(UUID gameId) {
         return findGameOrThrow(gameId);
     }
@@ -166,5 +185,20 @@ public class GameService implements ForCreatingGame, ForJoiningGame, ForPlayingT
         if (!game.getCurrentTurnPlayerId().equals(playerId)) {
             throw new NotYourTurnException("Not this player's turn");
         }
+    }
+
+    private void handleTimeoutIfExpired(Game game, UUID gameId) {
+        if (!game.isTimedOut()) {
+            return;
+        }
+        UUID currentPlayer = game.getCurrentTurnPlayerId();
+        UUID opponentId = game.isPlayer1(currentPlayer)
+                ? game.getPlayer2Id()
+                : game.getPlayer1Id();
+        game.forfeit(opponentId);
+        gameRepository.save(game);
+        playerStats.updateStatsAfterGame(opponentId, currentPlayer);
+        log.info("Game {} forfeited due to timeout", gameId);
+        throw new InvalidGameStateException("Turn timed out — game forfeited");
     }
 }

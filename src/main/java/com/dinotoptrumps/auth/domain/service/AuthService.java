@@ -1,20 +1,21 @@
 package com.dinotoptrumps.auth.domain.service;
 
+import com.dinotoptrumps.auth.domain.exception.InvalidCredentialsException;
+import com.dinotoptrumps.auth.domain.exception.UserAlreadyExistsException;
 import com.dinotoptrumps.auth.domain.model.User;
+import com.dinotoptrumps.auth.domain.model.UserProfile;
 import com.dinotoptrumps.auth.ports.in.ForAuthenticating;
 import com.dinotoptrumps.auth.ports.in.ForManagingProfile;
 import com.dinotoptrumps.auth.ports.in.ForRegistering;
+import com.dinotoptrumps.auth.ports.in.ForViewingPublicProfile;
 import com.dinotoptrumps.auth.ports.out.ForEncodingPasswords;
 import com.dinotoptrumps.auth.ports.out.ForPersistingUsers;
-import com.dinotoptrumps.auth.domain.exception.UserAlreadyExistsException;
-import com.dinotoptrumps.auth.domain.exception.InvalidCredentialsException;
-
-import java.util.UUID;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class AuthService implements ForRegistering, ForAuthenticating, ForManagingProfile {
+import java.util.UUID;
+
+public class AuthService implements ForRegistering, ForAuthenticating, ForManagingProfile, ForViewingPublicProfile {
 
     private static final Logger log = LoggerFactory.getLogger(AuthService.class);
 
@@ -66,5 +67,32 @@ public class AuthService implements ForRegistering, ForAuthenticating, ForManagi
                 .orElseThrow(() -> new InvalidCredentialsException("User not found"));
         user.setDisplayName(displayName);
         return userRepository.save(user);
+    }
+
+    @Override
+    public void changePassword(UUID userId, String currentPassword, String newPassword) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new InvalidCredentialsException("User not found"));
+        if (!passwordEncoder.matches(currentPassword, user.getPasswordHash())) {
+            throw new InvalidCredentialsException("Current password is incorrect");
+        }
+        user.setPasswordHash(passwordEncoder.encode(newPassword));
+        userRepository.save(user);
+        log.info("Password changed for user: {}", userId);
+    }
+
+    @Override
+    public void deleteAccount(UUID userId) {
+        userRepository.findById(userId)
+                .orElseThrow(() -> new InvalidCredentialsException("User not found"));
+        userRepository.deleteById(userId);
+        log.info("Account deleted for user: {}", userId);
+    }
+
+    @Override
+    public UserProfile getPublicProfile(UUID userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new InvalidCredentialsException("User not found"));
+        return UserProfile.fromUser(user);
     }
 }

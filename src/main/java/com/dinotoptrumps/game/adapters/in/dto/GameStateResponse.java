@@ -15,8 +15,10 @@ public record GameStateResponse(
         UUID currentTurnPlayerId,
         int player1HandSize,
         int player2HandSize,
+        int drawPileSize,
         List<UUID> yourHand,
         UUID winnerId,
+        Instant turnDeadline,
         Instant createdAt,
         Instant updatedAt
 ) {
@@ -37,8 +39,10 @@ public record GameStateResponse(
                 game.getCurrentTurnPlayerId(),
                 game.getPlayer1Hand().size(),
                 game.getPlayer2Hand().size(),
+                game.getDrawPile().size(),
                 yourHand,
                 game.getWinnerId(),
+                game.getTurnDeadline(),
                 game.getCreatedAt(),
                 game.getUpdatedAt()
         );

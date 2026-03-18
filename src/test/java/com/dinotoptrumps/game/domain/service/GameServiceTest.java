@@ -246,7 +246,7 @@ class GameServiceTest {
         Instant now = Instant.now();
         return new Game(UUID.randomUUID(), player1Id, player2Id, GameStatus.IN_PROGRESS,
                 player1Id, List.of(strongDino.getId()), List.of(fastDino.getId()),
-                null, null, now, now);
+                new ArrayList<>(), null, Instant.now().plusSeconds(30), now, now);
     }
 
     private Game createGameWithHands(Card p1Card, Card p2Card) {
@@ -255,7 +255,7 @@ class GameServiceTest {
                 player1Id,
                 new ArrayList<>(List.of(p1Card.getId())),
                 new ArrayList<>(List.of(p2Card.getId())),
-                null, null, now, now);
+                new ArrayList<>(), null, Instant.now().plusSeconds(30), now, now);
     }
 
     private Game createGameWithMultipleCards(List<UUID> p1Cards, List<UUID> p2Cards) {
@@ -264,13 +264,13 @@ class GameServiceTest {
                 player1Id,
                 new ArrayList<>(p1Cards),
                 new ArrayList<>(p2Cards),
-                null, null, now, now);
+                new ArrayList<>(), null, Instant.now().plusSeconds(30), now, now);
     }
 
     private Game createFinishedGame() {
         Instant now = Instant.now();
         return new Game(UUID.randomUUID(), player1Id, player2Id, GameStatus.FINISHED,
                 null, List.of(), List.of(),
-                player1Id, null, now, now);
+                List.of(), player1Id, null, now, now);
     }
 }

@@ -3,6 +3,7 @@ package com.dinotoptrumps.auth.infrastructure.spring;
 import com.dinotoptrumps.auth.domain.service.AuthService;
 import com.dinotoptrumps.auth.domain.service.LeaderboardService;
 import com.dinotoptrumps.auth.domain.service.PasswordResetService;
+import com.dinotoptrumps.auth.ports.in.ForViewingPublicProfile;
 import com.dinotoptrumps.auth.ports.out.ForEncodingPasswords;
 import com.dinotoptrumps.auth.ports.out.ForPersistingResetTokens;
 import com.dinotoptrumps.auth.ports.out.ForPersistingUsers;
@@ -17,6 +18,11 @@ public class AuthConfig {
     public AuthService authService(ForPersistingUsers userRepository,
                                    ForEncodingPasswords passwordEncoder) {
         return new AuthService(userRepository, passwordEncoder);
+    }
+
+    @Bean
+    public ForViewingPublicProfile forViewingPublicProfile(AuthService authService) {
+        return authService;
     }
 
     @Bean

@@ -39,6 +39,9 @@ public class GameJpaEntity {
     @Column(name = "player2_hand", columnDefinition = "TEXT")
     private String player2Hand;
 
+    @Column(name = "draw_pile", columnDefinition = "TEXT")
+    private String drawPile;
+
     @Column(name = "winner_id")
     private UUID winnerId;
 
