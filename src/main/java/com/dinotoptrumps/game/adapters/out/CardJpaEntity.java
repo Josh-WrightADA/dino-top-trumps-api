@@ -32,6 +32,9 @@ public class CardJpaEntity {
     @Column(name = "image_url")
     private String imageUrl;
 
+    @Column(columnDefinition = "TEXT")
+    private String description;
+
     @Column(nullable = false)
     private int height;
 

@@ -12,6 +12,7 @@ public class CardMapper {
         entity.setDiet(card.getDiet());
         entity.setEra(card.getEra());
         entity.setImageUrl(card.getImageUrl());
+        entity.setDescription(card.getDescription());
         entity.setHeight(card.getHeight());
         entity.setWeight(card.getWeight());
         entity.setIntelligence(card.getIntelligence());
@@ -28,6 +29,7 @@ public class CardMapper {
                 entity.getDiet(),
                 entity.getEra(),
                 entity.getImageUrl(),
+                entity.getDescription(),
                 entity.getHeight(),
                 entity.getWeight(),
                 entity.getIntelligence(),

@@ -94,7 +94,7 @@ public class Game {
         this.player2Hand = dealtHands[1].getCardIds();
         this.drawPile = new ArrayList<>();
         this.status = GameStatus.IN_PROGRESS;
-        this.currentTurnPlayerId = player1Id;
+        this.currentTurnPlayerId = Math.random() < 0.5 ? player1Id : joiningPlayerId;
         this.turnDeadline = Instant.now().plus(TURN_TIME_SECONDS, ChronoUnit.SECONDS);
         this.updatedAt = Instant.now();
     }
