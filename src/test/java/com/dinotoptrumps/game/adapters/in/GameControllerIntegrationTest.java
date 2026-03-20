@@ -72,8 +72,17 @@ class GameControllerIntegrationTest {
         String gameId = createGame(token1);
         joinGame(gameId, token2);
 
+        // Coin flip means either player may go first — fetch state to find out
+        MvcResult stateResult = mockMvc.perform(get("/api/v1/games/" + gameId)
+                        .header("Authorization", "Bearer " + token1))
+                .andReturn();
+        String stateBody = stateResult.getResponse().getContentAsString();
+        String currentTurnPlayerId = objectMapper.readTree(stateBody).get("currentTurnPlayerId").asText();
+        String player1Id = objectMapper.readTree(stateBody).get("player1Id").asText();
+        String activeToken = currentTurnPlayerId.equals(player1Id) ? token1 : token2;
+
         mockMvc.perform(post("/api/v1/games/" + gameId + "/turns")
-                        .header("Authorization", "Bearer " + token1)
+                        .header("Authorization", "Bearer " + activeToken)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(Map.of("stat", "STRENGTH"))))
                 .andExpect(status().isOk())
@@ -123,7 +132,7 @@ class GameControllerIntegrationTest {
         mockMvc.perform(get("/api/v1/cards")
                         .header("Authorization", "Bearer " + token))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$", hasSize(35)))
+                .andExpect(jsonPath("$", hasSize(36)))
                 .andExpect(jsonPath("$[0].name").isNotEmpty())
                 .andExpect(jsonPath("$[0].height").isNumber());
     }
