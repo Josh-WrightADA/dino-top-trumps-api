@@ -134,7 +134,9 @@ class GameControllerIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$", hasSize(36)))
                 .andExpect(jsonPath("$[0].name").isNotEmpty())
-                .andExpect(jsonPath("$[0].height").isNumber());
+                .andExpect(jsonPath("$[0].height").isNumber())
+                .andExpect(jsonPath("$[0].description").isNotEmpty())
+                .andExpect(jsonPath("$[0].imageUrl").isNotEmpty());
     }
 
     @Test
