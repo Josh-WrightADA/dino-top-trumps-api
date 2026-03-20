@@ -273,4 +273,134 @@ class GameServiceTest {
                 null, List.of(), List.of(),
                 List.of(), player1Id, null, now, now);
     }
+
+    @Nested
+    class CreateGame {
+
+        @Test
+        void createsWaitingGameForPlayer() {
+            Game result = gameService.createGame(player1Id);
+
+            verify(gameRepository).save(argThat(game ->
+                    game.getPlayer1Id().equals(player1Id)
+                            && game.getStatus() == GameStatus.WAITING));
+        }
+    }
+
+    @Nested
+    class ForfeitGame {
+
+        @Test
+        void validForfeit_opponentWins() {
+            Game game = createGameInProgress();
+            when(gameRepository.findById(game.getId())).thenReturn(Optional.of(game));
+
+            Game result = gameService.forfeitGame(game.getId(), player1Id);
+
+            assertEquals(GameStatus.FINISHED, result.getStatus());
+            assertEquals(player2Id, result.getWinnerId());
+        }
+
+        @Test
+        void forfeit_updatesPlayerStats() {
+            Game game = createGameInProgress();
+            when(gameRepository.findById(game.getId())).thenReturn(Optional.of(game));
+
+            gameService.forfeitGame(game.getId(), player1Id);
+
+            verify(playerStats).updateStatsAfterGame(player2Id, player1Id);
+        }
+
+        @Test
+        void forfeit_nonParticipant_throwsException() {
+            Game game = createGameInProgress();
+            when(gameRepository.findById(game.getId())).thenReturn(Optional.of(game));
+
+            UUID outsider = UUID.randomUUID();
+            assertThrows(NotYourTurnException.class,
+                    () -> gameService.forfeitGame(game.getId(), outsider));
+        }
+
+        @Test
+        void forfeit_finishedGame_throwsException() {
+            Game game = createFinishedGame();
+            when(gameRepository.findById(game.getId())).thenReturn(Optional.of(game));
+
+            assertThrows(InvalidGameStateException.class,
+                    () -> gameService.forfeitGame(game.getId(), player1Id));
+        }
+    }
+
+    @Nested
+    class TurnTimeout {
+
+        @Test
+        void playTurn_whenTimedOut_forfeitsCurrentPlayer() {
+            Instant pastDeadline = Instant.now().minusSeconds(60);
+            Game game = new Game(UUID.randomUUID(), player1Id, player2Id, GameStatus.IN_PROGRESS,
+                    player1Id,
+                    new ArrayList<>(List.of(strongDino.getId())),
+                    new ArrayList<>(List.of(fastDino.getId())),
+                    new ArrayList<>(), null, pastDeadline, Instant.now(), Instant.now());
+
+            when(gameRepository.findById(game.getId())).thenReturn(Optional.of(game));
+
+            assertThrows(InvalidGameStateException.class,
+                    () -> gameService.playTurn(game.getId(), player1Id, Stat.STRENGTH));
+
+            verify(gameRepository).save(argThat(saved ->
+                    saved.getStatus() == GameStatus.FINISHED
+                            && saved.getWinnerId().equals(player2Id)));
+            verify(playerStats).updateStatsAfterGame(player2Id, player1Id);
+        }
+    }
+
+    @Nested
+    class CleanupStaleGames {
+
+        @Test
+        void cleansUpStaleWaitingGames() {
+            Game staleWaiting = Game.create(player1Id);
+            when(gameRepository.findStaleGames(any(Instant.class), any(Instant.class)))
+                    .thenReturn(List.of(staleWaiting));
+
+            int cleaned = gameService.cleanupStaleGames();
+
+            assertEquals(1, cleaned);
+            verify(gameRepository).save(argThat(game ->
+                    game.getStatus() == GameStatus.FINISHED));
+        }
+
+        @Test
+        void cleansUpTimedOutInProgressGames() {
+            Instant pastDeadline = Instant.now().minusSeconds(600);
+            Game timedOut = new Game(UUID.randomUUID(), player1Id, player2Id,
+                    GameStatus.IN_PROGRESS, player1Id,
+                    new ArrayList<>(List.of(strongDino.getId())),
+                    new ArrayList<>(List.of(fastDino.getId())),
+                    new ArrayList<>(), null, pastDeadline, Instant.now(), Instant.now());
+
+            when(gameRepository.findStaleGames(any(Instant.class), any(Instant.class)))
+                    .thenReturn(List.of(timedOut));
+
+            int cleaned = gameService.cleanupStaleGames();
+
+            assertEquals(1, cleaned);
+            verify(gameRepository).save(argThat(game ->
+                    game.getStatus() == GameStatus.FINISHED
+                            && game.getWinnerId().equals(player2Id)));
+            verify(playerStats).updateStatsAfterGame(player2Id, player1Id);
+        }
+
+        @Test
+        void noStaleGames_returnsZero() {
+            when(gameRepository.findStaleGames(any(Instant.class), any(Instant.class)))
+                    .thenReturn(List.of());
+
+            int cleaned = gameService.cleanupStaleGames();
+
+            assertEquals(0, cleaned);
+            verify(gameRepository, never()).save(any());
+        }
+    }
 }
