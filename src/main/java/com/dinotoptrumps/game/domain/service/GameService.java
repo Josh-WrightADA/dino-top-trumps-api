@@ -24,6 +24,7 @@ import com.dinotoptrumps.game.ports.out.ForUpdatingPlayerStats;
 
 import java.time.Instant;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 import org.slf4j.Logger;
@@ -155,6 +156,15 @@ public class GameService implements ForCreatingGame, ForJoiningGame, ForPlayingT
     @Override
     public Game getGameState(UUID gameId) {
         return findGameOrThrow(gameId);
+    }
+
+    @Override
+    public Optional<Turn> getLastTurn(UUID gameId) {
+        List<Turn> turns = turnRepository.findByGameId(gameId);
+        if (turns.isEmpty()) {
+            return Optional.empty();
+        }
+        return Optional.of(turns.getLast());
     }
 
     @Override

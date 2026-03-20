@@ -2,6 +2,7 @@ package com.dinotoptrumps.game.adapters.in.dto;
 
 import com.dinotoptrumps.game.domain.model.Game;
 import com.dinotoptrumps.game.domain.model.GameStatus;
+import com.dinotoptrumps.game.domain.model.Turn;
 
 import java.time.Instant;
 import java.util.List;
@@ -20,16 +21,23 @@ public record GameStateResponse(
         UUID winnerId,
         Instant turnDeadline,
         Instant createdAt,
-        Instant updatedAt
+        Instant updatedAt,
+        TurnResponse lastTurn
 ) {
     /**
      * Builds a response tailored to the requesting player.
      * Only reveals the requesting player's hand — never the opponent's cards.
      */
     public static GameStateResponse forPlayer(Game game, UUID requestingPlayerId) {
+        return forPlayer(game, requestingPlayerId, null);
+    }
+
+    public static GameStateResponse forPlayer(Game game, UUID requestingPlayerId, Turn lastTurn) {
         List<UUID> yourHand = game.isPlayer1(requestingPlayerId)
                 ? game.getPlayer1Hand()
                 : game.getPlayer2Hand();
+
+        TurnResponse turnResponse = lastTurn != null ? TurnResponse.from(lastTurn) : null;
 
         return new GameStateResponse(
                 game.getId(),
@@ -44,7 +52,8 @@ public record GameStateResponse(
                 game.getWinnerId(),
                 game.getTurnDeadline(),
                 game.getCreatedAt(),
-                game.getUpdatedAt()
+                game.getUpdatedAt(),
+                turnResponse
         );
     }
 }

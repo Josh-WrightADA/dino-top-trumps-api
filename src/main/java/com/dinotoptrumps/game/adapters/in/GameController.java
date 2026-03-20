@@ -117,7 +117,8 @@ public class GameController {
         UUID playerId = (UUID) authentication.getPrincipal();
         Game game = forGettingGameState.getGameState(gameId);
         validatePlayerInGame(game, playerId);
-        return ResponseEntity.ok(GameStateResponse.forPlayer(game, playerId));
+        Turn lastTurn = forGettingGameState.getLastTurn(gameId).orElse(null);
+        return ResponseEntity.ok(GameStateResponse.forPlayer(game, playerId, lastTurn));
     }
 
     @GetMapping("/history")
