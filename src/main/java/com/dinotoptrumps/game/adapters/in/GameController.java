@@ -1,5 +1,6 @@
 package com.dinotoptrumps.game.adapters.in;
 
+import com.dinotoptrumps.game.adapters.in.dto.AvailableGameResponse;
 import com.dinotoptrumps.game.adapters.in.dto.GameStateResponse;
 import com.dinotoptrumps.game.adapters.in.dto.MatchHistoryEntry;
 import com.dinotoptrumps.game.adapters.in.dto.PlayTurnRequest;
@@ -86,10 +87,17 @@ public class GameController {
     }
 
     @GetMapping("/available")
-    public ResponseEntity<List<GameStateResponse>> getAvailableGames(Authentication authentication) {
-        UUID playerId = (UUID) authentication.getPrincipal();
-        List<GameStateResponse> games = forListingGames.getAvailableGames().stream()
-                .map(game -> GameStateResponse.forPlayer(game, playerId))
+    public ResponseEntity<List<AvailableGameResponse>> getAvailableGames(Authentication authentication) {
+        List<AvailableGameResponse> games = forListingGames.getAvailableGames().stream()
+                .map(game -> {
+                    String hostName = forManagingProfile.getProfile(game.getPlayer1Id()).getDisplayName();
+                    return new AvailableGameResponse(
+                            game.getId(),
+                            game.getPlayer1Id(),
+                            hostName,
+                            game.getCreatedAt()
+                    );
+                })
                 .toList();
         return ResponseEntity.ok(games);
     }

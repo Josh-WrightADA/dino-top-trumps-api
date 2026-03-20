@@ -174,7 +174,8 @@ class GameControllerIntegrationTest {
                         .header("Authorization", "Bearer " + token1))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$", hasSize(greaterThan(0))))
-                .andExpect(jsonPath("$[0].status").value("WAITING"));
+                .andExpect(jsonPath("$[0].hostName").exists())
+                .andExpect(jsonPath("$[0].id").exists());
     }
 
     @Test
