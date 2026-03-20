@@ -5,6 +5,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 
@@ -18,4 +19,10 @@ public interface GameJpaRepository extends JpaRepository<GameJpaEntity, UUID> {
 
     @Query("SELECT g FROM GameJpaEntity g WHERE (g.player1Id = :playerId OR g.player2Id = :playerId) AND g.status IN (:statuses)")
     List<GameJpaEntity> findByPlayerIdAndStatusIn(@Param("playerId") UUID playerId, @Param("statuses") List<String> statuses);
+
+    @Query("SELECT g FROM GameJpaEntity g WHERE "
+            + "(g.status = 'WAITING' AND g.createdAt < :waitingBefore) "
+            + "OR (g.status = 'IN_PROGRESS' AND g.turnDeadline < :timedOutBefore)")
+    List<GameJpaEntity> findStaleGames(@Param("waitingBefore") Instant waitingBefore,
+                                       @Param("timedOutBefore") Instant timedOutBefore);
 }

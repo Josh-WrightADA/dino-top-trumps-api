@@ -5,6 +5,7 @@ import com.dinotoptrumps.game.domain.model.GameStatus;
 import com.dinotoptrumps.game.ports.out.ForPersistingGames;
 import org.springframework.stereotype.Component;
 
+import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -54,6 +55,14 @@ public class GamePersistenceAdapter implements ForPersistingGames {
                 GameStatus.WAITING.name(),
                 GameStatus.IN_PROGRESS.name());
         return gameJpaRepository.findByPlayerIdAndStatusIn(playerId, activeStatuses)
+                .stream()
+                .map(GameMapper::toDomain)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<Game> findStaleGames(Instant waitingBefore, Instant timedOutBefore) {
+        return gameJpaRepository.findStaleGames(waitingBefore, timedOutBefore)
                 .stream()
                 .map(GameMapper::toDomain)
                 .collect(Collectors.toList());
