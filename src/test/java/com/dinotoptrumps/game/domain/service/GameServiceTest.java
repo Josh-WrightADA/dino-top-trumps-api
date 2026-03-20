@@ -403,4 +403,36 @@ class GameServiceTest {
             verify(gameRepository, never()).save(any());
         }
     }
+
+    @Nested
+    class GetLastTurn {
+
+        @Test
+        void returnsLastTurnWhenTurnsExist() {
+            UUID gameId = UUID.randomUUID();
+            Turn turn1 = new Turn(UUID.randomUUID(), gameId, 1, player1Id,
+                    strongDino.getId(), fastDino.getId(), Stat.STRENGTH, 95, 40,
+                    player1Id, Instant.now());
+            Turn turn2 = new Turn(UUID.randomUUID(), gameId, 2, player1Id,
+                    balancedDino.getId(), agileDino.getId(), Stat.SPEED, 30, 85,
+                    player2Id, Instant.now());
+
+            when(turnRepository.findByGameId(gameId)).thenReturn(List.of(turn1, turn2));
+
+            Optional<Turn> result = gameService.getLastTurn(gameId);
+
+            assertTrue(result.isPresent());
+            assertEquals(2, result.get().getTurnNumber());
+        }
+
+        @Test
+        void returnsEmptyWhenNoTurns() {
+            UUID gameId = UUID.randomUUID();
+            when(turnRepository.findByGameId(gameId)).thenReturn(List.of());
+
+            Optional<Turn> result = gameService.getLastTurn(gameId);
+
+            assertTrue(result.isEmpty());
+        }
+    }
 }
