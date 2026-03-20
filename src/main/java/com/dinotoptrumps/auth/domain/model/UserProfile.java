@@ -7,15 +7,17 @@ public class UserProfile {
     private final UUID userId;
     private final String username;
     private final String displayName;
+    private final String avatarUrl;
     private final int eloRating;
     private final int gamesPlayed;
     private final int gamesWon;
 
-    public UserProfile(UUID userId, String username, String displayName,
+    public UserProfile(UUID userId, String username, String displayName, String avatarUrl,
                        int eloRating, int gamesPlayed, int gamesWon) {
         this.userId = userId;
         this.username = username;
         this.displayName = displayName;
+        this.avatarUrl = avatarUrl;
         this.eloRating = eloRating;
         this.gamesPlayed = gamesPlayed;
         this.gamesWon = gamesWon;
@@ -26,6 +28,7 @@ public class UserProfile {
                 user.getId(),
                 user.getUsername(),
                 user.getDisplayName(),
+                user.getAvatarUrl(),
                 user.getEloRating(),
                 user.getGamesPlayed(),
                 user.getGamesWon()
@@ -42,6 +45,10 @@ public class UserProfile {
 
     public String getDisplayName() {
         return displayName;
+    }
+
+    public String getAvatarUrl() {
+        return avatarUrl;
     }
 
     public int getEloRating() {

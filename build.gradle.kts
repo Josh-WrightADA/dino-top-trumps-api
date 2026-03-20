@@ -35,6 +35,7 @@ dependencies {
     implementation("org.flywaydb:flyway-database-postgresql")
     implementation("io.jsonwebtoken:jjwt-api:0.12.6")
     implementation("com.sendgrid:sendgrid-java:4.10.3")
+    implementation("com.cloudinary:cloudinary-http5:2.0.0")
 
     runtimeOnly("org.postgresql:postgresql")
     runtimeOnly("io.jsonwebtoken:jjwt-impl:0.12.6")

@@ -22,5 +22,10 @@ sendgrid:
   api-key: disabled
   from-email: test@example.com
 
+cloudinary:
+  cloud-name: disabled
+  api-key: disabled
+  api-secret: disabled
+
 app:
   frontend-url: http://localhost:5173
