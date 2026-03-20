@@ -70,6 +70,16 @@ public class AuthService implements ForRegistering, ForAuthenticating, ForManagi
     }
 
     @Override
+    public User updateAvatar(UUID userId, String avatarUrl) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new InvalidCredentialsException("User not found"));
+        user.setAvatarUrl(avatarUrl);
+        User saved = userRepository.save(user);
+        log.info("Avatar updated for user: {}", userId);
+        return saved;
+    }
+
+    @Override
     public void changePassword(UUID userId, String currentPassword, String newPassword) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new InvalidCredentialsException("User not found"));

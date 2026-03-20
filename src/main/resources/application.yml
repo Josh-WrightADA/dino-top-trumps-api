@@ -17,6 +17,10 @@ spring:
     show-sql: true
   flyway:
     enabled: true
+  servlet:
+    multipart:
+      max-file-size: 2MB
+      max-request-size: 2MB
 
 jwt:
   secret: "dino-top-trumps-dev-secret-key-minimum-32-chars!!"
@@ -28,6 +32,11 @@ cors:
 sendgrid:
   api-key: ${SENDGRID_API_KEY:disabled}
   from-email: ${SENDGRID_FROM_EMAIL:noreply@dinotoptrumps.com}
+
+cloudinary:
+  cloud-name: ${CLOUDINARY_CLOUD_NAME:disabled}
+  api-key: ${CLOUDINARY_API_KEY:disabled}
+  api-secret: ${CLOUDINARY_API_SECRET:disabled}
 
 app:
   frontend-url: ${FRONTEND_URL:http://localhost:5173}
@@ -56,6 +65,10 @@ spring:
     show-sql: false
   flyway:
     enabled: true
+  servlet:
+    multipart:
+      max-file-size: 2MB
+      max-request-size: 2MB
 
 jwt:
   secret: ${JWT_SECRET}
@@ -67,6 +80,11 @@ cors:
 sendgrid:
   api-key: ${SENDGRID_API_KEY:disabled}
   from-email: ${SENDGRID_FROM_EMAIL:noreply@dinotoptrumps.com}
+
+cloudinary:
+  cloud-name: ${CLOUDINARY_CLOUD_NAME:disabled}
+  api-key: ${CLOUDINARY_API_KEY:disabled}
+  api-secret: ${CLOUDINARY_API_SECRET:disabled}
 
 app:
   frontend-url: ${FRONTEND_URL:http://localhost:5173}

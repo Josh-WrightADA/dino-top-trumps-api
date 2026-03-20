@@ -12,6 +12,7 @@ public class UserMapper {
         entity.setEmail(user.getEmail());
         entity.setPasswordHash(user.getPasswordHash());
         entity.setDisplayName(user.getDisplayName());
+        entity.setAvatarUrl(user.getAvatarUrl());
         entity.setEloRating(user.getEloRating());
         entity.setGamesPlayed(user.getGamesPlayed());
         entity.setGamesWon(user.getGamesWon());
@@ -27,6 +28,7 @@ public class UserMapper {
                 entity.getEmail(),
                 entity.getPasswordHash(),
                 entity.getDisplayName(),
+                entity.getAvatarUrl() != null ? entity.getAvatarUrl() : "",
                 entity.getEloRating(),
                 entity.getGamesPlayed(),
                 entity.getGamesWon(),

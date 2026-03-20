@@ -16,6 +16,7 @@ import com.dinotoptrumps.auth.ports.in.ForManagingProfile;
 import com.dinotoptrumps.auth.ports.in.ForRegistering;
 import com.dinotoptrumps.auth.ports.in.ForResettingPassword;
 import com.dinotoptrumps.auth.ports.in.ForViewingPublicProfile;
+import com.dinotoptrumps.auth.ports.out.ForStoringMedia;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -27,13 +28,22 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.server.ResponseStatusException;
 
+import java.io.IOException;
+import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/v1/auth")
 public class AuthController {
+
+    private static final long MAX_FILE_SIZE_BYTES = 2 * 1024 * 1024;
+    private static final Set<String> ALLOWED_CONTENT_TYPES = Set.of("image/jpeg", "image/png", "image/webp");
 
     private final ForRegistering forRegistering;
     private final ForAuthenticating forAuthenticating;
@@ -41,19 +51,22 @@ public class AuthController {
     private final ForResettingPassword forResettingPassword;
     private final ForViewingPublicProfile forViewingPublicProfile;
     private final JwtTokenProvider jwtTokenProvider;
+    private final ForStoringMedia forStoringMedia;
 
     public AuthController(ForRegistering forRegistering,
                           ForAuthenticating forAuthenticating,
                           ForManagingProfile forManagingProfile,
                           ForResettingPassword forResettingPassword,
                           ForViewingPublicProfile forViewingPublicProfile,
-                          JwtTokenProvider jwtTokenProvider) {
+                          JwtTokenProvider jwtTokenProvider,
+                          ForStoringMedia forStoringMedia) {
         this.forRegistering = forRegistering;
         this.forAuthenticating = forAuthenticating;
         this.forManagingProfile = forManagingProfile;
         this.forResettingPassword = forResettingPassword;
         this.forViewingPublicProfile = forViewingPublicProfile;
         this.jwtTokenProvider = jwtTokenProvider;
+        this.forStoringMedia = forStoringMedia;
     }
 
     @PostMapping("/register")
@@ -84,6 +97,48 @@ public class AuthController {
         UUID userId = (UUID) authentication.getPrincipal();
         User user = forManagingProfile.updateDisplayName(userId, request.displayName());
         UserProfile profile = UserProfile.fromUser(user);
+        return ResponseEntity.ok(ProfileResponse.from(profile));
+    }
+
+    @PostMapping("/me/avatar")
+    public ResponseEntity<ProfileResponse> uploadAvatar(
+            @RequestParam("file") MultipartFile file,
+            Authentication authentication) {
+        UUID userId = (UUID) authentication.getPrincipal();
+
+        String contentType = file.getContentType();
+        if (contentType == null || !ALLOWED_CONTENT_TYPES.contains(contentType)) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "Invalid file type. Allowed: jpeg, png, webp");
+        }
+        if (file.getSize() > MAX_FILE_SIZE_BYTES) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "File must be 2MB or smaller");
+        }
+
+        byte[] imageData;
+        try {
+            imageData = file.getBytes();
+        } catch (IOException e) {
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to read uploaded file");
+        }
+
+        String avatarUrl = forStoringMedia.uploadAvatar(userId, imageData, contentType);
+        User updated = forManagingProfile.updateAvatar(userId, avatarUrl);
+        UserProfile profile = UserProfile.fromUser(updated);
+        return ResponseEntity.ok(ProfileResponse.from(profile));
+    }
+
+    @PostMapping("/me/avatar/dino")
+    public ResponseEntity<ProfileResponse> setDinoAvatar(
+            @RequestBody Map<String, String> body,
+            Authentication authentication) {
+        UUID userId = (UUID) authentication.getPrincipal();
+        String imageUrl = body.get("imageUrl");
+        if (imageUrl == null || imageUrl.isBlank()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "imageUrl is required");
+        }
+        User updated = forManagingProfile.updateAvatar(userId, imageUrl);
+        UserProfile profile = UserProfile.fromUser(updated);
         return ResponseEntity.ok(ProfileResponse.from(profile));
     }
 

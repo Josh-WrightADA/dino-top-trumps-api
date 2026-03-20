@@ -10,6 +10,7 @@ public class User {
     private final String email;
     private String passwordHash;
     private String displayName;
+    private String avatarUrl;
     private int eloRating;
     private int gamesPlayed;
     private int gamesWon;
@@ -17,13 +18,14 @@ public class User {
     private Instant updatedAt;
 
     public User(UUID id, String username, String email, String passwordHash,
-                String displayName, int eloRating, int gamesPlayed, int gamesWon,
+                String displayName, String avatarUrl, int eloRating, int gamesPlayed, int gamesWon,
                 Instant createdAt, Instant updatedAt) {
         this.id = id;
         this.username = username;
         this.email = email;
         this.passwordHash = passwordHash;
         this.displayName = displayName;
+        this.avatarUrl = avatarUrl;
         this.eloRating = eloRating;
         this.gamesPlayed = gamesPlayed;
         this.gamesWon = gamesWon;
@@ -39,6 +41,7 @@ public class User {
                 email,
                 passwordHash,
                 username,
+                "",
                 1000,
                 0,
                 0,
@@ -69,6 +72,15 @@ public class User {
 
     public void setDisplayName(String displayName) {
         this.displayName = displayName;
+        this.updatedAt = Instant.now();
+    }
+
+    public String getAvatarUrl() {
+        return avatarUrl;
+    }
+
+    public void setAvatarUrl(String avatarUrl) {
+        this.avatarUrl = avatarUrl;
         this.updatedAt = Instant.now();
     }
 

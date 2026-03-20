@@ -6,6 +6,7 @@ import com.dinotoptrumps.auth.domain.model.UserProfile;
 public record ProfileResponse(
         String username,
         String displayName,
+        String avatarUrl,
         int eloRating,
         int gamesPlayed,
         int gamesWon,
@@ -15,6 +16,7 @@ public record ProfileResponse(
         return new ProfileResponse(
                 profile.getUsername(),
                 profile.getDisplayName(),
+                profile.getAvatarUrl(),
                 profile.getEloRating(),
                 profile.getGamesPlayed(),
                 profile.getGamesWon(),

@@ -33,6 +33,9 @@ public class UserJpaEntity {
     @Column(name = "display_name")
     private String displayName;
 
+    @Column(name = "avatar_url")
+    private String avatarUrl;
+
     @Column(name = "elo_rating", nullable = false)
     private int eloRating;
 
