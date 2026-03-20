@@ -9,6 +9,7 @@ import com.dinotoptrumps.game.domain.model.GameStatus;
 import com.dinotoptrumps.game.domain.model.Hand;
 import com.dinotoptrumps.game.domain.model.Stat;
 import com.dinotoptrumps.game.domain.model.Turn;
+import com.dinotoptrumps.game.ports.in.ForCleaningUpGames;
 import com.dinotoptrumps.game.ports.in.ForCreatingGame;
 import com.dinotoptrumps.game.ports.in.ForForfeitingGame;
 import com.dinotoptrumps.game.ports.in.ForGettingGameState;
@@ -29,7 +30,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class GameService implements ForCreatingGame, ForJoiningGame, ForPlayingTurn,
-        ForGettingGameState, ForGettingMatchHistory, ForForfeitingGame, ForListingGames {
+        ForGettingGameState, ForGettingMatchHistory, ForForfeitingGame, ForListingGames,
+        ForCleaningUpGames {
 
     private static final Logger log = LoggerFactory.getLogger(GameService.class);
 
@@ -211,5 +213,38 @@ public class GameService implements ForCreatingGame, ForJoiningGame, ForPlayingT
         playerStats.updateStatsAfterGame(opponentId, currentPlayer);
         log.info("Game {} forfeited due to timeout", gameId);
         throw new InvalidGameStateException("Turn timed out — game forfeited");
+    }
+
+    @Override
+    public int cleanupStaleGames() {
+        Instant waitingCutoff = Instant.now().minusSeconds(3600);
+        Instant timeoutCutoff = Instant.now().minusSeconds(300);
+
+        List<Game> staleGames = gameRepository.findStaleGames(waitingCutoff, timeoutCutoff);
+        int count = 0;
+
+        for (Game game : staleGames) {
+            if (game.getStatus() == GameStatus.WAITING) {
+                game.forfeit(null);
+                gameRepository.save(game);
+                count++;
+                log.info("Cleaned up stale WAITING game {}", game.getId());
+            } else if (game.getStatus() == GameStatus.IN_PROGRESS && game.isTimedOut()) {
+                UUID currentPlayer = game.getCurrentTurnPlayerId();
+                UUID opponentId = game.isPlayer1(currentPlayer)
+                        ? game.getPlayer2Id()
+                        : game.getPlayer1Id();
+                game.forfeit(opponentId);
+                gameRepository.save(game);
+                playerStats.updateStatsAfterGame(opponentId, currentPlayer);
+                count++;
+                log.info("Cleaned up timed-out IN_PROGRESS game {}", game.getId());
+            }
+        }
+
+        if (count > 0) {
+            log.info("Stale game cleanup complete: {} games cleaned", count);
+        }
+        return count;
     }
 }
