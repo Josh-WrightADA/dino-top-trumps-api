@@ -71,6 +71,19 @@ public class AuthService implements ForRegistering, ForAuthenticating, ForManagi
     }
 
     @Override
+    public User updateProfile(UUID userId, String displayName, String bio, UUID favouriteCardId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new InvalidCredentialsException("User not found"));
+        if (displayName != null) {
+            user.setDisplayName(displayName);
+        }
+        user.setBio(bio);
+        user.setFavouriteCardId(favouriteCardId);
+        log.info("event_type=PROFILE_UPDATED userId={}", userId);
+        return userRepository.save(user);
+    }
+
+    @Override
     public User updateAvatar(UUID userId, String avatarUrl) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new InvalidCredentialsException("User not found"));

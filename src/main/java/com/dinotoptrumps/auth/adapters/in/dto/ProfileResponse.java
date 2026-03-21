@@ -3,10 +3,14 @@ package com.dinotoptrumps.auth.adapters.in.dto;
 import com.dinotoptrumps.auth.domain.model.RankTier;
 import com.dinotoptrumps.auth.domain.model.UserProfile;
 
+import java.util.UUID;
+
 public record ProfileResponse(
         String username,
         String displayName,
         String avatarUrl,
+        String bio,
+        UUID favouriteCardId,
         int eloRating,
         int gamesPlayed,
         int gamesWon,
@@ -17,6 +21,8 @@ public record ProfileResponse(
                 profile.getUsername(),
                 profile.getDisplayName(),
                 profile.getAvatarUrl(),
+                profile.getBio(),
+                profile.getFavouriteCardId(),
                 profile.getEloRating(),
                 profile.getGamesPlayed(),
                 profile.getGamesWon(),

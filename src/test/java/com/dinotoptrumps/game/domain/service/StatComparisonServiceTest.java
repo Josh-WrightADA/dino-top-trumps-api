@@ -21,13 +21,13 @@ class StatComparisonServiceTest {
 
         tRex = new Card(
                 UUID.randomUUID(), "T-Rex", "Tyrant lizard", "carnivorous",
-                "Late Cretaceous", "http://example.com/trex.jpg", "",
+                "Late Cretaceous", "http://example.com/trex.jpg", "", null,
                 85, 90, 40, 30, 95
         );
 
         velociraptor = new Card(
                 UUID.randomUUID(), "Velociraptor", "Swift thief", "carnivorous",
-                "Late Cretaceous", "http://example.com/raptor.jpg", "",
+                "Late Cretaceous", "http://example.com/raptor.jpg", "", null,
                 25, 15, 90, 95, 40
         );
     }
@@ -47,11 +47,11 @@ class StatComparisonServiceTest {
     @Test
     void equalStats_shouldReturnNull() {
         Card card1 = new Card(
-                UUID.randomUUID(), "Dino A", "", "", "", "", "",
+                UUID.randomUUID(), "Dino A", "", "", "", "", "", null,
                 50, 50, 70, 50, 50
         );
         Card card2 = new Card(
-                UUID.randomUUID(), "Dino B", "", "", "", "", "",
+                UUID.randomUUID(), "Dino B", "", "", "", "", "", null,
                 50, 50, 70, 50, 50
         );
         UUID winner = service.compare(card1, card2, Stat.INTELLIGENCE);
@@ -61,11 +61,11 @@ class StatComparisonServiceTest {
     @Test
     void allStatsCanBeCompared() {
         Card card1 = new Card(
-                UUID.randomUUID(), "Dino A", "", "", "", "", "",
+                UUID.randomUUID(), "Dino A", "", "", "", "", "", null,
                 50, 50, 70, 50, 50
         );
         Card card2 = new Card(
-                UUID.randomUUID(), "Dino B", "", "", "", "", "",
+                UUID.randomUUID(), "Dino B", "", "", "", "", "", null,
                 50, 50, 70, 50, 50
         );
 

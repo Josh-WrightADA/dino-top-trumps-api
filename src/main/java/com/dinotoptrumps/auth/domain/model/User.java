@@ -11,6 +11,8 @@ public class User {
     private String passwordHash;
     private String displayName;
     private String avatarUrl;
+    private String bio;
+    private UUID favouriteCardId;
     private int eloRating;
     private int gamesPlayed;
     private int gamesWon;
@@ -18,7 +20,8 @@ public class User {
     private Instant updatedAt;
 
     public User(UUID id, String username, String email, String passwordHash,
-                String displayName, String avatarUrl, int eloRating, int gamesPlayed, int gamesWon,
+                String displayName, String avatarUrl, String bio, UUID favouriteCardId,
+                int eloRating, int gamesPlayed, int gamesWon,
                 Instant createdAt, Instant updatedAt) {
         this.id = id;
         this.username = username;
@@ -26,6 +29,8 @@ public class User {
         this.passwordHash = passwordHash;
         this.displayName = displayName;
         this.avatarUrl = avatarUrl;
+        this.bio = bio;
+        this.favouriteCardId = favouriteCardId;
         this.eloRating = eloRating;
         this.gamesPlayed = gamesPlayed;
         this.gamesWon = gamesWon;
@@ -42,6 +47,8 @@ public class User {
                 passwordHash,
                 username,
                 "",
+                null,
+                null,
                 1000,
                 0,
                 0,
@@ -81,6 +88,24 @@ public class User {
 
     public void setAvatarUrl(String avatarUrl) {
         this.avatarUrl = avatarUrl;
+        this.updatedAt = Instant.now();
+    }
+
+    public String getBio() {
+        return bio;
+    }
+
+    public void setBio(String bio) {
+        this.bio = bio;
+        this.updatedAt = Instant.now();
+    }
+
+    public UUID getFavouriteCardId() {
+        return favouriteCardId;
+    }
+
+    public void setFavouriteCardId(UUID favouriteCardId) {
+        this.favouriteCardId = favouriteCardId;
         this.updatedAt = Instant.now();
     }
 

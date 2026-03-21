@@ -95,7 +95,8 @@ public class AuthController {
     public ResponseEntity<ProfileResponse> updateProfile(Authentication authentication,
                                                          @Valid @RequestBody UpdateProfileRequest request) {
         UUID userId = (UUID) authentication.getPrincipal();
-        User user = forManagingProfile.updateDisplayName(userId, request.displayName());
+        User user = forManagingProfile.updateProfile(userId, request.displayName(),
+                request.bio(), request.favouriteCardId());
         UserProfile profile = UserProfile.fromUser(user);
         return ResponseEntity.ok(ProfileResponse.from(profile));
     }

@@ -36,6 +36,12 @@ public class UserJpaEntity {
     @Column(name = "avatar_url")
     private String avatarUrl;
 
+    @Column(name = "bio", length = 500)
+    private String bio;
+
+    @Column(name = "favourite_card_id")
+    private UUID favouriteCardId;
+
     @Column(name = "elo_rating", nullable = false)
     private int eloRating;
 
