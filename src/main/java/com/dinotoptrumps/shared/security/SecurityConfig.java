@@ -40,7 +40,7 @@ public class SecurityConfig {
                 // so there is nothing to protect against when no session cookies are used.
                 .csrf(csrf -> csrf.disable())
                 .headers(headers -> headers
-                        .contentTypeOptions(contentType -> {})
+                        .contentTypeOptions(contentType -> { })
                         .frameOptions(frame -> frame.deny())
                         .httpStrictTransportSecurity(hsts -> hsts
                                 .includeSubDomains(true)
