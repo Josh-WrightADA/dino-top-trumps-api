@@ -21,6 +21,14 @@ spring:
     multipart:
       max-file-size: 2MB
       max-request-size: 2MB
+  lifecycle:
+    timeout-per-shutdown-phase: 30s
+
+server:
+  shutdown: graceful
+  compression:
+    enabled: true
+    min-response-size: 1024
 
 jwt:
   secret: "dino-top-trumps-dev-secret-key-minimum-32-chars!!"
@@ -49,6 +57,13 @@ management:
   endpoint:
     health:
       show-details: never
+      probes:
+        enabled: true
+  health:
+    livenessstate:
+      enabled: true
+    readinessstate:
+      enabled: true
 
 ---
 spring:
@@ -69,6 +84,14 @@ spring:
     multipart:
       max-file-size: 2MB
       max-request-size: 2MB
+  lifecycle:
+    timeout-per-shutdown-phase: 30s
+
+server:
+  shutdown: graceful
+  compression:
+    enabled: true
+    min-response-size: 1024
 
 jwt:
   secret: ${JWT_SECRET}
@@ -97,3 +120,10 @@ management:
   endpoint:
     health:
       show-details: never
+      probes:
+        enabled: true
+  health:
+    livenessstate:
+      enabled: true
+    readinessstate:
+      enabled: true
