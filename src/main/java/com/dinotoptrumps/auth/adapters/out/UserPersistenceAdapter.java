@@ -43,6 +43,13 @@ public class UserPersistenceAdapter implements ForPersistingUsers {
     }
 
     @Override
+    public List<User> findAll() {
+        return userJpaRepository.findAll().stream()
+                .map(UserMapper::toDomain)
+                .toList();
+    }
+
+    @Override
     public List<User> findTopByEloRating(int limit) {
         return userJpaRepository.findAllByOrderByEloRatingDesc().stream()
                 .limit(limit)

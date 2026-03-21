@@ -67,4 +67,16 @@ public class GamePersistenceAdapter implements ForPersistingGames {
                 .map(GameMapper::toDomain)
                 .collect(Collectors.toList());
     }
+
+    @Override
+    public List<Game> findAll() {
+        return gameJpaRepository.findAll().stream()
+                .map(GameMapper::toDomain)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public void deleteById(UUID id) {
+        gameJpaRepository.deleteById(id);
+    }
 }

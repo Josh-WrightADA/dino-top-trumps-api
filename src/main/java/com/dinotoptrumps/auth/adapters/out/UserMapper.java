@@ -1,11 +1,12 @@
 package com.dinotoptrumps.auth.adapters.out;
 
+import com.dinotoptrumps.auth.domain.model.AccountStatus;
+import com.dinotoptrumps.auth.domain.model.Role;
 import com.dinotoptrumps.auth.domain.model.User;
 
 public class UserMapper {
 
     public static UserJpaEntity toEntity(User user) {
-        // TODO: Map domain User to JPA entity
         UserJpaEntity entity = new UserJpaEntity();
         entity.setId(user.getId());
         entity.setUsername(user.getUsername());
@@ -15,6 +16,8 @@ public class UserMapper {
         entity.setAvatarUrl(user.getAvatarUrl());
         entity.setBio(user.getBio());
         entity.setFavouriteCardId(user.getFavouriteCardId());
+        entity.setRole(user.getRole().name());
+        entity.setStatus(user.getStatus().name());
         entity.setEloRating(user.getEloRating());
         entity.setGamesPlayed(user.getGamesPlayed());
         entity.setGamesWon(user.getGamesWon());
@@ -33,6 +36,8 @@ public class UserMapper {
                 entity.getAvatarUrl() != null ? entity.getAvatarUrl() : "",
                 entity.getBio(),
                 entity.getFavouriteCardId(),
+                Role.valueOf(entity.getRole()),
+                AccountStatus.valueOf(entity.getStatus()),
                 entity.getEloRating(),
                 entity.getGamesPlayed(),
                 entity.getGamesWon(),

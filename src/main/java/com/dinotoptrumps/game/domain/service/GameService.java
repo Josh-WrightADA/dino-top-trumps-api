@@ -9,6 +9,7 @@ import com.dinotoptrumps.game.domain.model.GameStatus;
 import com.dinotoptrumps.game.domain.model.Hand;
 import com.dinotoptrumps.game.domain.model.Stat;
 import com.dinotoptrumps.game.domain.model.Turn;
+import com.dinotoptrumps.game.ports.in.ForAdminGameOperations;
 import com.dinotoptrumps.game.ports.in.ForCleaningUpGames;
 import com.dinotoptrumps.game.ports.in.ForCreatingGame;
 import com.dinotoptrumps.game.ports.in.ForForfeitingGame;
@@ -32,7 +33,7 @@ import org.slf4j.LoggerFactory;
 
 public class GameService implements ForCreatingGame, ForJoiningGame, ForPlayingTurn,
         ForGettingGameState, ForGettingMatchHistory, ForForfeitingGame, ForListingGames,
-        ForCleaningUpGames {
+        ForCleaningUpGames, ForAdminGameOperations {
 
     private static final Logger log = LoggerFactory.getLogger(GameService.class);
 
@@ -180,6 +181,19 @@ public class GameService implements ForCreatingGame, ForJoiningGame, ForPlayingT
     @Override
     public List<Game> getActiveGames(UUID playerId) {
         return gameRepository.findActiveByPlayerId(playerId);
+    }
+
+    @Override
+    public List<Game> getAllGames() {
+        return gameRepository.findAll();
+    }
+
+    @Override
+    public void deleteGame(UUID gameId) {
+        gameRepository.findById(gameId)
+                .orElseThrow(() -> new GameNotFoundException("Game not found: " + gameId));
+        gameRepository.deleteById(gameId);
+        log.info("event_type=GAME_DELETED gameId={}", gameId);
     }
 
     private Game findGameOrThrow(UUID gameId) {

@@ -15,4 +15,6 @@ public interface ForPersistingGames {
     List<Game> findByStatus(GameStatus status);
     List<Game> findActiveByPlayerId(UUID playerId);
     List<Game> findStaleGames(Instant waitingBefore, Instant timedOutBefore);
+    List<Game> findAll();
+    void deleteById(UUID id);
 }
