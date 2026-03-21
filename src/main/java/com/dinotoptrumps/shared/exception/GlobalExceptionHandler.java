@@ -6,6 +6,12 @@ import com.dinotoptrumps.game.domain.exception.GameNotFoundException;
 import com.dinotoptrumps.game.domain.exception.InvalidGameStateException;
 import com.dinotoptrumps.game.domain.exception.InvalidStatException;
 import com.dinotoptrumps.game.domain.exception.NotYourTurnException;
+import com.dinotoptrumps.social.domain.exception.CannotFriendYourselfException;
+import com.dinotoptrumps.social.domain.exception.FriendRequestAlreadyExistsException;
+import com.dinotoptrumps.social.domain.exception.FriendshipNotFoundException;
+import com.dinotoptrumps.social.domain.exception.GameInviteExpiredException;
+import com.dinotoptrumps.social.domain.exception.GameInviteNotFoundException;
+import com.dinotoptrumps.social.domain.exception.NotFriendsException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
@@ -65,6 +71,36 @@ public class GlobalExceptionHandler {
     public ProblemDetail handleUnreadableMessage(HttpMessageNotReadableException ex) {
         return buildProblem(HttpStatus.BAD_REQUEST, "Malformed Request",
                 "Invalid request body: " + ex.getMostSpecificCause().getMessage());
+    }
+
+    @ExceptionHandler(CannotFriendYourselfException.class)
+    public ProblemDetail handleCannotFriendYourself(CannotFriendYourselfException ex) {
+        return buildProblem(HttpStatus.BAD_REQUEST, "Cannot Friend Yourself", ex.getMessage());
+    }
+
+    @ExceptionHandler(FriendRequestAlreadyExistsException.class)
+    public ProblemDetail handleFriendRequestAlreadyExists(FriendRequestAlreadyExistsException ex) {
+        return buildProblem(HttpStatus.CONFLICT, "Friend Request Already Exists", ex.getMessage());
+    }
+
+    @ExceptionHandler(FriendshipNotFoundException.class)
+    public ProblemDetail handleFriendshipNotFound(FriendshipNotFoundException ex) {
+        return buildProblem(HttpStatus.NOT_FOUND, "Friendship Not Found", ex.getMessage());
+    }
+
+    @ExceptionHandler(NotFriendsException.class)
+    public ProblemDetail handleNotFriends(NotFriendsException ex) {
+        return buildProblem(HttpStatus.FORBIDDEN, "Not Friends", ex.getMessage());
+    }
+
+    @ExceptionHandler(GameInviteNotFoundException.class)
+    public ProblemDetail handleGameInviteNotFound(GameInviteNotFoundException ex) {
+        return buildProblem(HttpStatus.NOT_FOUND, "Game Invite Not Found", ex.getMessage());
+    }
+
+    @ExceptionHandler(GameInviteExpiredException.class)
+    public ProblemDetail handleGameInviteExpired(GameInviteExpiredException ex) {
+        return buildProblem(HttpStatus.GONE, "Game Invite Expired", ex.getMessage());
     }
 
     @ExceptionHandler(IllegalArgumentException.class)
