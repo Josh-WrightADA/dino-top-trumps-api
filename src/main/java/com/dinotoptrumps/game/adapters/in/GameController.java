@@ -125,6 +125,7 @@ public class GameController {
         UUID playerId = (UUID) authentication.getPrincipal();
         List<Game> games = forGettingMatchHistory.getMatchHistory(playerId);
         List<MatchHistoryEntry> history = games.stream()
+                .filter(game -> game.getPlayer2Id() != null)
                 .map(game -> {
                     UUID opponentId = game.isPlayer1(playerId)
                             ? game.getPlayer2Id()
