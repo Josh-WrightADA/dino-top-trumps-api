@@ -11,6 +11,7 @@ public interface ForPersistingUsers {
     Optional<User> findByUsername(String username);
     Optional<User> findByEmail(String email);
     Optional<User> findById(UUID id);
+    List<User> findAll();
     List<User> findTopByEloRating(int limit);
     void deleteById(UUID id);
 }

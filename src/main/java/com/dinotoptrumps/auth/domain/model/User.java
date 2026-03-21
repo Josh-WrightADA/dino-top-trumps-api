@@ -13,6 +13,8 @@ public class User {
     private String avatarUrl;
     private String bio;
     private UUID favouriteCardId;
+    private Role role;
+    private AccountStatus status;
     private int eloRating;
     private int gamesPlayed;
     private int gamesWon;
@@ -21,6 +23,7 @@ public class User {
 
     public User(UUID id, String username, String email, String passwordHash,
                 String displayName, String avatarUrl, String bio, UUID favouriteCardId,
+                Role role, AccountStatus status,
                 int eloRating, int gamesPlayed, int gamesWon,
                 Instant createdAt, Instant updatedAt) {
         this.id = id;
@@ -31,6 +34,8 @@ public class User {
         this.avatarUrl = avatarUrl;
         this.bio = bio;
         this.favouriteCardId = favouriteCardId;
+        this.role = role;
+        this.status = status;
         this.eloRating = eloRating;
         this.gamesPlayed = gamesPlayed;
         this.gamesWon = gamesWon;
@@ -49,12 +54,32 @@ public class User {
                 "",
                 null,
                 null,
+                Role.PLAYER,
+                AccountStatus.ACTIVE,
                 1000,
                 0,
                 0,
                 now,
                 now
         );
+    }
+
+    public boolean isAdmin() {
+        return Role.ADMIN.equals(this.role);
+    }
+
+    public boolean isBanned() {
+        return AccountStatus.BANNED.equals(this.status);
+    }
+
+    public void ban() {
+        this.status = AccountStatus.BANNED;
+        this.updatedAt = Instant.now();
+    }
+
+    public void unban() {
+        this.status = AccountStatus.ACTIVE;
+        this.updatedAt = Instant.now();
     }
 
     public UUID getId() {
@@ -107,6 +132,14 @@ public class User {
     public void setFavouriteCardId(UUID favouriteCardId) {
         this.favouriteCardId = favouriteCardId;
         this.updatedAt = Instant.now();
+    }
+
+    public Role getRole() {
+        return role;
+    }
+
+    public AccountStatus getStatus() {
+        return status;
     }
 
     public int getEloRating() {

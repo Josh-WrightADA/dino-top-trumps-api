@@ -21,14 +21,19 @@ public class AuthService implements ForRegistering, ForAuthenticating, ForManagi
 
     private final ForPersistingUsers userRepository;
     private final ForEncodingPasswords passwordEncoder;
+    private final ProfanityFilter profanityFilter;
 
-    public AuthService(ForPersistingUsers userRepository, ForEncodingPasswords passwordEncoder) {
+    public AuthService(ForPersistingUsers userRepository, ForEncodingPasswords passwordEncoder,
+                       ProfanityFilter profanityFilter) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
+        this.profanityFilter = profanityFilter;
     }
 
     @Override
     public User register(String username, String email, String rawPassword) {
+        profanityFilter.validate(username, "Username");
+
         if (userRepository.findByUsername(username).isPresent()) {
             throw new UserAlreadyExistsException("Username already taken: " + username);
         }
@@ -52,6 +57,12 @@ public class AuthService implements ForRegistering, ForAuthenticating, ForManagi
             log.warn("event_type=AUTH_LOGIN_FAILED username={}", username);
             throw new InvalidCredentialsException("Invalid username or password");
         }
+
+        if (user.isBanned()) {
+            log.warn("event_type=AUTH_LOGIN_BANNED username={}", username);
+            throw new InvalidCredentialsException("Account has been banned");
+        }
+
         log.info("event_type=AUTH_LOGIN_SUCCESS username={}", username);
         return user;
     }
@@ -72,6 +83,13 @@ public class AuthService implements ForRegistering, ForAuthenticating, ForManagi
 
     @Override
     public User updateProfile(UUID userId, String displayName, String bio, UUID favouriteCardId) {
+        if (displayName != null) {
+            profanityFilter.validate(displayName, "Display name");
+        }
+        if (bio != null) {
+            profanityFilter.validate(bio, "Bio");
+        }
+
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new InvalidCredentialsException("User not found"));
         if (displayName != null) {

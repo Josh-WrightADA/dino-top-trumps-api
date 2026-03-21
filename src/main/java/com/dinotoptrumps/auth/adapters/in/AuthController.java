@@ -7,13 +7,17 @@ import com.dinotoptrumps.auth.adapters.in.dto.LoginResponse;
 import com.dinotoptrumps.auth.adapters.in.dto.MessageResponse;
 import com.dinotoptrumps.auth.adapters.in.dto.ProfileResponse;
 import com.dinotoptrumps.auth.adapters.in.dto.RegisterRequest;
+import com.dinotoptrumps.auth.adapters.in.dto.ReportRequest;
+import com.dinotoptrumps.auth.adapters.in.dto.ReportResponse;
 import com.dinotoptrumps.auth.adapters.in.dto.ResetPasswordRequest;
 import com.dinotoptrumps.auth.adapters.in.dto.UpdateProfileRequest;
+import com.dinotoptrumps.auth.domain.model.Report;
 import com.dinotoptrumps.auth.domain.model.User;
 import com.dinotoptrumps.auth.domain.model.UserProfile;
 import com.dinotoptrumps.auth.ports.in.ForAuthenticating;
 import com.dinotoptrumps.auth.ports.in.ForManagingProfile;
 import com.dinotoptrumps.auth.ports.in.ForRegistering;
+import com.dinotoptrumps.auth.ports.in.ForReportingUsers;
 import com.dinotoptrumps.auth.ports.in.ForResettingPassword;
 import com.dinotoptrumps.auth.ports.in.ForViewingPublicProfile;
 import com.dinotoptrumps.auth.ports.out.ForStoringMedia;
@@ -52,6 +56,7 @@ public class AuthController {
     private final ForViewingPublicProfile forViewingPublicProfile;
     private final JwtTokenProvider jwtTokenProvider;
     private final ForStoringMedia forStoringMedia;
+    private final ForReportingUsers forReportingUsers;
 
     public AuthController(ForRegistering forRegistering,
                           ForAuthenticating forAuthenticating,
@@ -59,7 +64,8 @@ public class AuthController {
                           ForResettingPassword forResettingPassword,
                           ForViewingPublicProfile forViewingPublicProfile,
                           JwtTokenProvider jwtTokenProvider,
-                          ForStoringMedia forStoringMedia) {
+                          ForStoringMedia forStoringMedia,
+                          ForReportingUsers forReportingUsers) {
         this.forRegistering = forRegistering;
         this.forAuthenticating = forAuthenticating;
         this.forManagingProfile = forManagingProfile;
@@ -67,6 +73,7 @@ public class AuthController {
         this.forViewingPublicProfile = forViewingPublicProfile;
         this.jwtTokenProvider = jwtTokenProvider;
         this.forStoringMedia = forStoringMedia;
+        this.forReportingUsers = forReportingUsers;
     }
 
     @PostMapping("/register")
@@ -79,7 +86,7 @@ public class AuthController {
     @PostMapping("/login")
     public ResponseEntity<LoginResponse> login(@Valid @RequestBody LoginRequest request) {
         User user = forAuthenticating.authenticate(request.username(), request.password());
-        String token = jwtTokenProvider.generateToken(user.getId(), user.getUsername());
+        String token = jwtTokenProvider.generateToken(user.getId(), user.getUsername(), user.getRole().name());
         return ResponseEntity.ok(new LoginResponse(token));
     }
 
@@ -162,6 +169,15 @@ public class AuthController {
     public ResponseEntity<ProfileResponse> getPublicProfile(@PathVariable UUID id) {
         UserProfile profile = forViewingPublicProfile.getPublicProfile(id);
         return ResponseEntity.ok(ProfileResponse.from(profile));
+    }
+
+    @PostMapping("/players/{id}/report")
+    public ResponseEntity<ReportResponse> reportPlayer(@PathVariable UUID id,
+                                                       @Valid @RequestBody ReportRequest request,
+                                                       Authentication authentication) {
+        UUID reporterId = (UUID) authentication.getPrincipal();
+        Report report = forReportingUsers.reportUser(reporterId, id, request.reason());
+        return ResponseEntity.status(HttpStatus.CREATED).body(ReportResponse.from(report));
     }
 
     @PostMapping("/forgot-password")

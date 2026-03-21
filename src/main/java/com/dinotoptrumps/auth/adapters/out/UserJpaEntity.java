@@ -42,6 +42,12 @@ public class UserJpaEntity {
     @Column(name = "favourite_card_id")
     private UUID favouriteCardId;
 
+    @Column(nullable = false)
+    private String role;
+
+    @Column(nullable = false)
+    private String status;
+
     @Column(name = "elo_rating", nullable = false)
     private int eloRating;
 
