@@ -11,6 +11,7 @@ public class Card {
     private final String era;
     private final String imageUrl;
     private final String description;
+    private final String funFact;
     private final int height;
     private final int weight;
     private final int intelligence;
@@ -18,7 +19,7 @@ public class Card {
     private final int strength;
 
     public Card(UUID id, String name, String meaning, String diet, String era,
-                String imageUrl, String description, int height, int weight,
+                String imageUrl, String description, String funFact, int height, int weight,
                 int intelligence, int speed, int strength) {
         this.id = id;
         this.name = name;
@@ -27,6 +28,7 @@ public class Card {
         this.era = era;
         this.imageUrl = imageUrl;
         this.description = description;
+        this.funFact = funFact;
         this.height = height;
         this.weight = weight;
         this.intelligence = intelligence;
@@ -60,6 +62,10 @@ public class Card {
 
     public String getDescription() {
         return description;
+    }
+
+    public String getFunFact() {
+        return funFact;
     }
 
     public int getHeight() {

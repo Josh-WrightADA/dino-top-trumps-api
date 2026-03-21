@@ -39,7 +39,7 @@ public class AuthService implements ForRegistering, ForAuthenticating, ForManagi
         String hashedPassword = passwordEncoder.encode(rawPassword);
         User user = User.create(username, email, hashedPassword);
         User saved = userRepository.save(user);
-        log.info("User registered: {}", username);
+        log.info("event_type=AUTH_REGISTER_SUCCESS username={}", username);
         return saved;
     }
 
@@ -49,9 +49,10 @@ public class AuthService implements ForRegistering, ForAuthenticating, ForManagi
                 .orElseThrow(() -> new InvalidCredentialsException("Invalid username or password"));
 
         if (!passwordEncoder.matches(rawPassword, user.getPasswordHash())) {
+            log.warn("event_type=AUTH_LOGIN_FAILED username={}", username);
             throw new InvalidCredentialsException("Invalid username or password");
         }
-        log.info("User authenticated: {}", username);
+        log.info("event_type=AUTH_LOGIN_SUCCESS username={}", username);
         return user;
     }
 
@@ -70,12 +71,25 @@ public class AuthService implements ForRegistering, ForAuthenticating, ForManagi
     }
 
     @Override
+    public User updateProfile(UUID userId, String displayName, String bio, UUID favouriteCardId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new InvalidCredentialsException("User not found"));
+        if (displayName != null) {
+            user.setDisplayName(displayName);
+        }
+        user.setBio(bio);
+        user.setFavouriteCardId(favouriteCardId);
+        log.info("event_type=PROFILE_UPDATED userId={}", userId);
+        return userRepository.save(user);
+    }
+
+    @Override
     public User updateAvatar(UUID userId, String avatarUrl) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new InvalidCredentialsException("User not found"));
         user.setAvatarUrl(avatarUrl);
         User saved = userRepository.save(user);
-        log.info("Avatar updated for user: {}", userId);
+        log.info("event_type=AVATAR_CHANGED userId={}", userId);
         return saved;
     }
 
@@ -88,7 +102,7 @@ public class AuthService implements ForRegistering, ForAuthenticating, ForManagi
         }
         user.setPasswordHash(passwordEncoder.encode(newPassword));
         userRepository.save(user);
-        log.info("Password changed for user: {}", userId);
+        log.info("event_type=PASSWORD_CHANGED userId={}", userId);
     }
 
     @Override
@@ -96,7 +110,7 @@ public class AuthService implements ForRegistering, ForAuthenticating, ForManagi
         userRepository.findById(userId)
                 .orElseThrow(() -> new InvalidCredentialsException("User not found"));
         userRepository.deleteById(userId);
-        log.info("Account deleted for user: {}", userId);
+        log.info("event_type=ACCOUNT_DELETED userId={}", userId);
     }
 
     @Override

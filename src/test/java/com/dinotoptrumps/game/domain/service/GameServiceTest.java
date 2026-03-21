@@ -50,13 +50,13 @@ class GameServiceTest {
                 playerStats, new DeckService(), new StatComparisonService(), new EloService());
 
         strongDino = new Card(UUID.randomUUID(), "T-Rex", "Tyrant Lizard", "Carnivore",
-                "Cretaceous", null, "", 60, 80, 50, 40, 95);
+                "Cretaceous", null, "", null, 60, 80, 50, 40, 95);
         fastDino = new Card(UUID.randomUUID(), "Velociraptor", "Swift Thief", "Carnivore",
-                "Cretaceous", null, "", 30, 20, 70, 90, 40);
+                "Cretaceous", null, "", null, 30, 20, 70, 90, 40);
         balancedDino = new Card(UUID.randomUUID(), "Stego", "Roof Lizard", "Herbivore",
-                "Jurassic", null, "", 50, 60, 40, 30, 70);
+                "Jurassic", null, "", null, 50, 60, 40, 30, 70);
         agileDino = new Card(UUID.randomUUID(), "Raptor", "Thief", "Carnivore",
-                "Cretaceous", null, "", 35, 25, 65, 85, 45);
+                "Cretaceous", null, "", null, 35, 25, 65, 85, 45);
 
         when(gameRepository.save(any(Game.class))).thenAnswer(inv -> inv.getArgument(0));
         when(turnRepository.save(any(Turn.class))).thenAnswer(inv -> inv.getArgument(0));

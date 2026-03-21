@@ -35,6 +35,9 @@ public class CardJpaEntity {
     @Column(columnDefinition = "TEXT")
     private String description;
 
+    @Column(name = "fun_fact", columnDefinition = "TEXT")
+    private String funFact;
+
     @Column(nullable = false)
     private int height;
 

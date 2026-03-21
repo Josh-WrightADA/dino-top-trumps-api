@@ -13,6 +13,8 @@ public class UserMapper {
         entity.setPasswordHash(user.getPasswordHash());
         entity.setDisplayName(user.getDisplayName());
         entity.setAvatarUrl(user.getAvatarUrl());
+        entity.setBio(user.getBio());
+        entity.setFavouriteCardId(user.getFavouriteCardId());
         entity.setEloRating(user.getEloRating());
         entity.setGamesPlayed(user.getGamesPlayed());
         entity.setGamesWon(user.getGamesWon());
@@ -29,6 +31,8 @@ public class UserMapper {
                 entity.getPasswordHash(),
                 entity.getDisplayName(),
                 entity.getAvatarUrl() != null ? entity.getAvatarUrl() : "",
+                entity.getBio(),
+                entity.getFavouriteCardId(),
                 entity.getEloRating(),
                 entity.getGamesPlayed(),
                 entity.getGamesWon(),

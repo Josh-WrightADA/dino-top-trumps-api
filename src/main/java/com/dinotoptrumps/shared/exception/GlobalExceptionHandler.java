@@ -9,14 +9,13 @@ import com.dinotoptrumps.game.domain.exception.NotYourTurnException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.ProblemDetail;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
-import java.time.Instant;
-import java.util.Map;
+import java.net.URI;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
@@ -24,62 +23,61 @@ public class GlobalExceptionHandler {
     private static final Logger log = LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
     @ExceptionHandler(UserAlreadyExistsException.class)
-    public ResponseEntity<Map<String, Object>> handleUserAlreadyExists(UserAlreadyExistsException ex) {
-        return buildResponse(HttpStatus.CONFLICT, ex.getMessage());
+    public ProblemDetail handleUserAlreadyExists(UserAlreadyExistsException ex) {
+        return buildProblem(HttpStatus.CONFLICT, "User Already Exists", ex.getMessage());
     }
 
     @ExceptionHandler(InvalidCredentialsException.class)
-    public ResponseEntity<Map<String, Object>> handleInvalidCredentials(InvalidCredentialsException ex) {
-        return buildResponse(HttpStatus.UNAUTHORIZED, ex.getMessage());
+    public ProblemDetail handleInvalidCredentials(InvalidCredentialsException ex) {
+        return buildProblem(HttpStatus.UNAUTHORIZED, "Invalid Credentials", ex.getMessage());
     }
 
     @ExceptionHandler(GameNotFoundException.class)
-    public ResponseEntity<Map<String, Object>> handleGameNotFound(GameNotFoundException ex) {
-        return buildResponse(HttpStatus.NOT_FOUND, ex.getMessage());
+    public ProblemDetail handleGameNotFound(GameNotFoundException ex) {
+        return buildProblem(HttpStatus.NOT_FOUND, "Game Not Found", ex.getMessage());
     }
 
     @ExceptionHandler(NotYourTurnException.class)
-    public ResponseEntity<Map<String, Object>> handleNotYourTurn(NotYourTurnException ex) {
-        return buildResponse(HttpStatus.FORBIDDEN, ex.getMessage());
+    public ProblemDetail handleNotYourTurn(NotYourTurnException ex) {
+        return buildProblem(HttpStatus.FORBIDDEN, "Not Your Turn", ex.getMessage());
     }
 
     @ExceptionHandler(InvalidStatException.class)
-    public ResponseEntity<Map<String, Object>> handleInvalidStat(InvalidStatException ex) {
-        return buildResponse(HttpStatus.BAD_REQUEST, ex.getMessage());
+    public ProblemDetail handleInvalidStat(InvalidStatException ex) {
+        return buildProblem(HttpStatus.BAD_REQUEST, "Invalid Stat", ex.getMessage());
     }
 
     @ExceptionHandler(InvalidGameStateException.class)
-    public ResponseEntity<Map<String, Object>> handleInvalidGameState(InvalidGameStateException ex) {
-        return buildResponse(HttpStatus.BAD_REQUEST, ex.getMessage());
+    public ProblemDetail handleInvalidGameState(InvalidGameStateException ex) {
+        return buildProblem(HttpStatus.BAD_REQUEST, "Invalid Game State", ex.getMessage());
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<Map<String, Object>> handleValidationErrors(MethodArgumentNotValidException ex) {
+    public ProblemDetail handleValidationErrors(MethodArgumentNotValidException ex) {
         String message = ex.getBindingResult().getFieldErrors().stream()
                 .map(error -> error.getField() + ": " + error.getDefaultMessage())
                 .reduce((a, b) -> a + "; " + b)
                 .orElse("Validation failed");
-        return buildResponse(HttpStatus.BAD_REQUEST, message);
+        return buildProblem(HttpStatus.BAD_REQUEST, "Validation Error", message);
     }
 
     @ExceptionHandler(HttpMessageNotReadableException.class)
-    public ResponseEntity<Map<String, Object>> handleUnreadableMessage(HttpMessageNotReadableException ex) {
-        // Catches malformed JSON or invalid enum values (e.g. an unknown stat name)
-        return buildResponse(HttpStatus.BAD_REQUEST, "Invalid request body: " + ex.getMostSpecificCause().getMessage());
+    public ProblemDetail handleUnreadableMessage(HttpMessageNotReadableException ex) {
+        return buildProblem(HttpStatus.BAD_REQUEST, "Malformed Request",
+                "Invalid request body: " + ex.getMostSpecificCause().getMessage());
     }
 
     @ExceptionHandler(Exception.class)
-    public ResponseEntity<Map<String, Object>> handleGenericException(Exception ex) {
+    public ProblemDetail handleGenericException(Exception ex) {
         log.error("Unhandled exception", ex);
-        return buildResponse(HttpStatus.INTERNAL_SERVER_ERROR, "An unexpected error occurred");
+        return buildProblem(HttpStatus.INTERNAL_SERVER_ERROR, "Internal Error",
+                "An unexpected error occurred");
     }
 
-    private ResponseEntity<Map<String, Object>> buildResponse(HttpStatus status, String message) {
-        return ResponseEntity.status(status).body(Map.of(
-                "status", status.value(),
-                "error", status.getReasonPhrase(),
-                "message", message,
-                "timestamp", Instant.now().toString()
-        ));
+    private ProblemDetail buildProblem(HttpStatus status, String title, String detail) {
+        ProblemDetail problem = ProblemDetail.forStatusAndDetail(status, detail);
+        problem.setTitle(title);
+        problem.setType(URI.create("about:blank"));
+        return problem;
     }
 }

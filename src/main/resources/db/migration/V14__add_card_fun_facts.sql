@@ -1,0 +1,40 @@
+-- Add fun fact column to cards for educational quiz feature
+ALTER TABLE cards ADD COLUMN fun_fact TEXT;
+
+-- Seed fun facts for all 36 dinosaurs
+UPDATE cards SET fun_fact = 'The T-Rex had the most powerful bite force of any land animal ever — estimated at over 12,800 pounds, enough to crush bone.' WHERE name = 'Tyrannosaurus Rex';
+UPDATE cards SET fun_fact = 'Velociraptors were actually about the size of a turkey, not the human-sized predators shown in movies.' WHERE name = 'Velociraptor';
+UPDATE cards SET fun_fact = 'Triceratops'' massive frill may have been used for temperature regulation as well as display and defence.' WHERE name = 'Triceratops';
+UPDATE cards SET fun_fact = 'Stegosaurus had a brain the size of a walnut despite being the size of a bus — one of the smallest brain-to-body ratios of any dinosaur.' WHERE name = 'Stegosaurus';
+UPDATE cards SET fun_fact = 'Brachiosaurus could reach heights of 13 metres — tall enough to peek into a fourth-floor window.' WHERE name = 'Brachiosaurus';
+UPDATE cards SET fun_fact = 'Pteranodon had a wingspan of up to 7 metres but weighed only about 25 kg thanks to hollow bones.' WHERE name = 'Pteranodon';
+UPDATE cards SET fun_fact = 'Ankylosaurus'' tail club could generate enough force to shatter bone — a living wrecking ball.' WHERE name = 'Ankylosaurus';
+UPDATE cards SET fun_fact = 'Spinosaurus is the only known dinosaur adapted for a semi-aquatic lifestyle, with dense bones for ballast like modern hippos.' WHERE name = 'Spinosaurus';
+UPDATE cards SET fun_fact = 'Parasaurolophus'' hollow crest could produce deep, resonating calls audible for miles — like a natural trombone.' WHERE name = 'Parasaurolophus';
+UPDATE cards SET fun_fact = 'Allosaurus hunted in packs and may have used ambush tactics, making it the wolf of the Jurassic.' WHERE name = 'Allosaurus';
+UPDATE cards SET fun_fact = 'Diplodocus could crack its tail like a whip, producing sonic booms that reached over 200 decibels.' WHERE name = 'Diplodocus';
+UPDATE cards SET fun_fact = 'Carnotaurus had the tiniest arms of any large predator — even smaller proportionally than T-Rex.' WHERE name = 'Carnotaurus';
+UPDATE cards SET fun_fact = 'Pachycephalosaurus'' dome skull was 25 cm thick — scientists debate whether it was used for head-butting or flank-butting rivals.' WHERE name = 'Pachycephalosaurus';
+UPDATE cards SET fun_fact = 'Iguanodon was one of the first three dinosaurs ever scientifically described, back in 1825.' WHERE name = 'Iguanodon';
+UPDATE cards SET fun_fact = 'Dilophosaurus had no frill or venom — those were invented for Jurassic Park. It was actually a fast, powerful predator.' WHERE name = 'Dilophosaurus';
+UPDATE cards SET fun_fact = 'Compsognathus was one of the smallest known dinosaurs at just 1 metre long — about the size of a chicken.' WHERE name = 'Compsognathus';
+UPDATE cards SET fun_fact = 'Therizinosaurus had the longest claws of any animal ever — up to 1 metre long — but was likely a herbivore.' WHERE name = 'Therizinosaurus';
+UPDATE cards SET fun_fact = 'Archaeopteryx is considered the transitional link between dinosaurs and modern birds, with both feathers and teeth.' WHERE name = 'Archaeopteryx';
+UPDATE cards SET fun_fact = 'Mosasaurus was not a dinosaur but a marine reptile — the apex predator of Late Cretaceous oceans, growing up to 17 metres.' WHERE name = 'Mosasaurus';
+UPDATE cards SET fun_fact = 'Gallimimus could run at speeds up to 50 km/h, making it one of the fastest dinosaurs ever.' WHERE name = 'Gallimimus';
+UPDATE cards SET fun_fact = 'Deinonychus'' discovery in the 1960s revolutionised our understanding of dinosaurs as active, warm-blooded animals.' WHERE name = 'Deinonychus';
+UPDATE cards SET fun_fact = 'Apatosaurus was originally confused with Brontosaurus for over a century — a famous case of mistaken identity in palaeontology.' WHERE name = 'Apatosaurus';
+UPDATE cards SET fun_fact = 'Ceratosaurus had a distinctive horn on its nose and bony ridges above its eyes — one of the most visually striking predators.' WHERE name = 'Ceratosaurus';
+UPDATE cards SET fun_fact = 'Giganotosaurus was slightly larger than T-Rex but had a much weaker bite — it relied on slashing attacks instead.' WHERE name = 'Giganotosaurus';
+UPDATE cards SET fun_fact = 'Maiasaura means "good mother lizard" — it was the first dinosaur proven to care for its young in nests.' WHERE name = 'Maiasaura';
+UPDATE cards SET fun_fact = 'Oviraptor was wrongly named "egg thief" — it was actually found sitting on its OWN eggs, not stealing them.' WHERE name = 'Oviraptor';
+UPDATE cards SET fun_fact = 'Plesiosaurus inspired the legend of the Loch Ness Monster, despite going extinct 66 million years ago.' WHERE name = 'Plesiosaurus';
+UPDATE cards SET fun_fact = 'Kentrosaurus had shoulder spikes that pointed backwards and sideways — a 360-degree defence system.' WHERE name = 'Kentrosaurus';
+UPDATE cards SET fun_fact = 'Edmontosaurus had over 1,000 teeth packed into dental batteries that continuously replaced worn teeth — a living grinding machine.' WHERE name = 'Edmontosaurus';
+UPDATE cards SET fun_fact = 'Baryonyx is one of the few dinosaurs found with fish scales preserved in its stomach — direct evidence of its diet.' WHERE name = 'Baryonyx';
+UPDATE cards SET fun_fact = 'Protoceratops is thought to have inspired the legend of the griffin — its beaked skull and four-legged body match the mythical creature.' WHERE name = 'Protoceratops';
+UPDATE cards SET fun_fact = 'Styracosaurus had one of the most elaborate head displays of any dinosaur, with six long horn-like spikes on its frill.' WHERE name = 'Styracosaurus';
+UPDATE cards SET fun_fact = 'Megalosaurus was the very first dinosaur to be formally named and described, in 1824 by William Buckland.' WHERE name = 'Megalosaurus';
+UPDATE cards SET fun_fact = 'Microraptor had four wings — feathers on both its arms AND legs — and could glide between trees.' WHERE name = 'Microraptor';
+UPDATE cards SET fun_fact = 'Dimetrodon is often mistaken for a dinosaur but actually lived 40 million years before dinosaurs evolved — it was a synapsid, more closely related to mammals.' WHERE name = 'Dimetrodon';
+UPDATE cards SET fun_fact = 'Quetzalcoatlus was the largest flying animal ever, with a wingspan of 10-11 metres — as wide as a small aeroplane.' WHERE name = 'Quetzalcoatlus';

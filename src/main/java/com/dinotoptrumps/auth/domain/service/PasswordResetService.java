@@ -7,6 +7,8 @@ import com.dinotoptrumps.auth.ports.out.ForEncodingPasswords;
 import com.dinotoptrumps.auth.ports.out.ForPersistingResetTokens;
 import com.dinotoptrumps.auth.ports.out.ForPersistingUsers;
 import com.dinotoptrumps.auth.ports.out.ForSendingEmails;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
@@ -14,6 +16,8 @@ import java.util.Optional;
 import java.util.UUID;
 
 public class PasswordResetService implements ForResettingPassword {
+
+    private static final Logger log = LoggerFactory.getLogger(PasswordResetService.class);
 
     private final ForPersistingUsers userRepository;
     private final ForPersistingResetTokens tokenRepository;
@@ -45,6 +49,7 @@ public class PasswordResetService implements ForResettingPassword {
         PasswordResetToken resetToken = PasswordResetToken.create(user.getId(), token, expiresAt);
         tokenRepository.save(resetToken);
         emailSender.sendPasswordResetEmail(user.getEmail(), token);
+        log.info("event_type=PASSWORD_RESET_REQUESTED userId={}", user.getId());
     }
 
     @Override
@@ -65,5 +70,6 @@ public class PasswordResetService implements ForResettingPassword {
 
         resetToken.markUsed();
         tokenRepository.save(resetToken);
+        log.info("event_type=PASSWORD_RESET_COMPLETED userId={}", user.getId());
     }
 }

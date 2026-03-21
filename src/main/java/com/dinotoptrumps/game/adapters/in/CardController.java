@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 @RestController
 @RequestMapping("/api/v1/cards")
@@ -24,6 +25,8 @@ public class CardController {
         List<CardResponse> cards = forLoadingCards.loadAllCards().stream()
                 .map(CardResponse::from)
                 .toList();
-        return ResponseEntity.ok(cards);
+        return ResponseEntity.ok()
+                .cacheControl(org.springframework.http.CacheControl.maxAge(1, TimeUnit.HOURS).cachePublic())
+                .body(cards);
     }
 }
