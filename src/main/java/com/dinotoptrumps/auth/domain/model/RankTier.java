@@ -20,4 +20,23 @@ public enum RankTier {
             return METEOR;
         }
     }
+
+    public int getFloorElo() {
+        return switch (this) {
+            case HATCHLING -> 0;
+            case HERBIVORE -> 800;
+            case CARNIVORE -> 1000;
+            case APEX -> 1200;
+            case METEOR -> 1400;
+        };
+    }
+
+    public static int calculateLeaguePoints(int elo) {
+        RankTier tier = fromElo(elo);
+        int lp = elo - tier.getFloorElo();
+        if (tier == METEOR) {
+            return Math.max(0, lp);
+        }
+        return Math.max(0, Math.min(100, lp));
+    }
 }

@@ -99,7 +99,7 @@ class AuthControllerIntegrationTest {
                         .header("Authorization", "Bearer " + token))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.username").value("profuser"))
-                .andExpect(jsonPath("$.eloRating").value(1000))
+                .andExpect(jsonPath("$.leaguePoints").value(0))
                 .andExpect(jsonPath("$.rankTier").value("CARNIVORE"));
     }
 
@@ -176,7 +176,7 @@ class AuthControllerIntegrationTest {
                         .header("Authorization", "Bearer " + token))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.username").value("publicuser"))
-                .andExpect(jsonPath("$.eloRating").value(1000))
+                .andExpect(jsonPath("$.leaguePoints").value(0))
                 .andExpect(jsonPath("$.rankTier").value("CARNIVORE"));
     }
 

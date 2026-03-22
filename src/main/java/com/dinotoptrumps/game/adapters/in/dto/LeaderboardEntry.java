@@ -8,7 +8,7 @@ public record LeaderboardEntry(
         UUID userId,
         String username,
         String displayName,
-        int eloRating,
+        int leaguePoints,
         int gamesPlayed,
         int gamesWon,
         RankTier rankTier
