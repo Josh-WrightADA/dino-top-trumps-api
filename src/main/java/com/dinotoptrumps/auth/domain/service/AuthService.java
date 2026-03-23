@@ -70,16 +70,7 @@ public class AuthService implements ForRegistering, ForAuthenticating, ForManagi
 
     @Override
     public User getProfile(UUID userId) {
-        return userRepository.findById(userId)
-                .orElseThrow(() -> new InvalidCredentialsException("User not found"));
-    }
-
-    @Override
-    public User updateDisplayName(UUID userId, String displayName) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new InvalidCredentialsException("User not found"));
-        user.setDisplayName(displayName);
-        return userRepository.save(user);
+        return getUserOrThrow(userId);
     }
 
     @Override
@@ -91,8 +82,7 @@ public class AuthService implements ForRegistering, ForAuthenticating, ForManagi
             profanityFilter.validate(bio, "Bio");
         }
 
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new InvalidCredentialsException("User not found"));
+        User user = getUserOrThrow(userId);
         if (displayName != null) {
             user.setDisplayName(displayName);
         }
@@ -104,8 +94,7 @@ public class AuthService implements ForRegistering, ForAuthenticating, ForManagi
 
     @Override
     public User updateAvatar(UUID userId, String avatarUrl) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new InvalidCredentialsException("User not found"));
+        User user = getUserOrThrow(userId);
         user.setAvatarUrl(avatarUrl);
         User saved = userRepository.save(user);
         log.info("event_type=AVATAR_CHANGED userId={}", userId);
@@ -114,8 +103,7 @@ public class AuthService implements ForRegistering, ForAuthenticating, ForManagi
 
     @Override
     public void changePassword(UUID userId, String currentPassword, String newPassword) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new InvalidCredentialsException("User not found"));
+        User user = getUserOrThrow(userId);
         if (!passwordEncoder.matches(currentPassword, user.getPasswordHash())) {
             throw new InvalidPasswordException("Current password is incorrect");
         }
@@ -126,16 +114,19 @@ public class AuthService implements ForRegistering, ForAuthenticating, ForManagi
 
     @Override
     public void deleteAccount(UUID userId) {
-        userRepository.findById(userId)
-                .orElseThrow(() -> new InvalidCredentialsException("User not found"));
+        getUserOrThrow(userId);
         userRepository.deleteById(userId);
         log.info("event_type=ACCOUNT_DELETED userId={}", userId);
     }
 
     @Override
     public UserProfile getPublicProfile(UUID userId) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new InvalidCredentialsException("User not found"));
+        User user = getUserOrThrow(userId);
         return UserProfile.fromUser(user);
+    }
+
+    private User getUserOrThrow(UUID userId) {
+        return userRepository.findById(userId)
+                .orElseThrow(() -> new InvalidCredentialsException("User not found"));
     }
 }

@@ -1,15 +1,12 @@
 package com.dinotoptrumps.social.domain.service;
 
-import com.dinotoptrumps.game.domain.exception.GameNotFoundException;
-import com.dinotoptrumps.game.domain.exception.InvalidGameStateException;
-import com.dinotoptrumps.game.domain.model.GameStatus;
 import com.dinotoptrumps.game.ports.in.ForJoiningGame;
-import com.dinotoptrumps.game.ports.out.ForPersistingGames;
 import com.dinotoptrumps.social.domain.exception.GameInviteExpiredException;
 import com.dinotoptrumps.social.domain.exception.GameInviteNotFoundException;
 import com.dinotoptrumps.social.domain.exception.NotFriendsException;
 import com.dinotoptrumps.social.domain.model.GameInvite;
 import com.dinotoptrumps.social.ports.in.ForManagingGameInvites;
+import com.dinotoptrumps.social.ports.out.ForCheckingGameStatus;
 import com.dinotoptrumps.social.ports.out.ForPersistingFriendships;
 import com.dinotoptrumps.social.ports.out.ForPersistingGameInvites;
 import org.slf4j.Logger;
@@ -25,16 +22,16 @@ public class GameInviteService implements ForManagingGameInvites {
 
     private final ForPersistingGameInvites inviteRepo;
     private final ForPersistingFriendships friendshipRepo;
-    private final ForPersistingGames gameRepo;
+    private final ForCheckingGameStatus gameStatusChecker;
     private final ForJoiningGame forJoiningGame;
 
     public GameInviteService(ForPersistingGameInvites inviteRepo,
                              ForPersistingFriendships friendshipRepo,
-                             ForPersistingGames gameRepo,
+                             ForCheckingGameStatus gameStatusChecker,
                              ForJoiningGame forJoiningGame) {
         this.inviteRepo = inviteRepo;
         this.friendshipRepo = friendshipRepo;
-        this.gameRepo = gameRepo;
+        this.gameStatusChecker = gameStatusChecker;
         this.forJoiningGame = forJoiningGame;
     }
 
@@ -44,15 +41,8 @@ public class GameInviteService implements ForManagingGameInvites {
             throw new IllegalArgumentException("Cannot invite yourself");
         }
 
-        var game = gameRepo.findById(gameId)
-                .orElseThrow(() -> new GameNotFoundException("Game not found: " + gameId));
-
-        if (game.getStatus() != GameStatus.WAITING) {
-            throw new InvalidGameStateException("Game is not accepting invites");
-        }
-
-        if (!game.getPlayer1Id().equals(inviterId)) {
-            throw new InvalidGameStateException("Only the host can send invites");
+        if (!gameStatusChecker.isGameWaitingAndHostedBy(gameId, inviterId)) {
+            throw new IllegalStateException("Game is not available for invites or you are not the host");
         }
 
         friendshipRepo.findAcceptedBetween(inviterId, inviteeId)
