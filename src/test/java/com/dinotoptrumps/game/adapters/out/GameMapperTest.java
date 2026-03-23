@@ -1,6 +1,7 @@
 package com.dinotoptrumps.game.adapters.out;
 
 import com.dinotoptrumps.game.domain.model.Game;
+import com.dinotoptrumps.game.domain.model.GameEndReason;
 import com.dinotoptrumps.game.domain.model.GameStatus;
 import org.junit.jupiter.api.Test;
 
@@ -97,7 +98,7 @@ class GameMapperTest {
         Game original = new Game(
                 gameId, p1, p2, GameStatus.IN_PROGRESS, currentTurn,
                 List.of(card1, card2), List.of(card3),
-                List.of(), null, null, now, now
+                List.of(), null, null, null, now, now
         );
 
         GameJpaEntity entity = GameMapper.toEntity(original);
@@ -123,7 +124,7 @@ class GameMapperTest {
         Game original = new Game(
                 gameId, p1, null, GameStatus.WAITING, null,
                 List.of(), List.of(),
-                List.of(), null, null, now, now
+                List.of(), null, null, null, now, now
         );
 
         GameJpaEntity entity = GameMapper.toEntity(original);
@@ -133,5 +134,44 @@ class GameMapperTest {
         assertNull(restored.getPlayer2Id());
         assertTrue(restored.getPlayer1Hand().isEmpty());
         assertTrue(restored.getPlayer2Hand().isEmpty());
+    }
+
+    @Test
+    void roundTrip_finishedGameWithEndReason_preservesEndReason() {
+        UUID gameId = UUID.randomUUID();
+        UUID p1 = UUID.randomUUID();
+        UUID p2 = UUID.randomUUID();
+        Instant now = Instant.now();
+
+        Game original = new Game(
+                gameId, p1, p2, GameStatus.FINISHED, null,
+                List.of(), List.of(),
+                List.of(), p1, GameEndReason.FORFEIT, null, now, now
+        );
+
+        GameJpaEntity entity = GameMapper.toEntity(original);
+        Game restored = GameMapper.toDomain(entity);
+
+        assertEquals(GameEndReason.FORFEIT, restored.getGameEndReason());
+        assertEquals(p1, restored.getWinnerId());
+    }
+
+    @Test
+    void roundTrip_nullEndReason_remainsNull() {
+        UUID gameId = UUID.randomUUID();
+        UUID p1 = UUID.randomUUID();
+        UUID p2 = UUID.randomUUID();
+        Instant now = Instant.now();
+
+        Game original = new Game(
+                gameId, p1, p2, GameStatus.IN_PROGRESS, p1,
+                List.of(), List.of(),
+                List.of(), null, null, null, now, now
+        );
+
+        GameJpaEntity entity = GameMapper.toEntity(original);
+        Game restored = GameMapper.toDomain(entity);
+
+        assertNull(restored.getGameEndReason());
     }
 }
