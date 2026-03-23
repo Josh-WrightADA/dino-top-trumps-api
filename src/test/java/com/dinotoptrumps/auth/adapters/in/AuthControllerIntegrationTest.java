@@ -141,8 +141,21 @@ class AuthControllerIntegrationTest extends IntegrationTestBase {
         String token = registerAndLogin("deleteuser", "deleteuser@example.com", "password123");
 
         mockMvc.perform(delete("/api/v1/auth/me")
-                        .header("Authorization", "Bearer " + token))
+                        .header("Authorization", "Bearer " + token)
+                        .contentType("application/json")
+                        .content("{\"password\":\"password123\"}"))
                 .andExpect(status().isNoContent());
+    }
+
+    @Test
+    void deleteAccount_wrongPassword_returns400() throws Exception {
+        String token = registerAndLogin("deluser2", "deluser2@example.com", "password123");
+
+        mockMvc.perform(delete("/api/v1/auth/me")
+                        .header("Authorization", "Bearer " + token)
+                        .contentType("application/json")
+                        .content("{\"password\":\"wrongpassword\"}"))
+                .andExpect(status().isBadRequest());
     }
 
     @Test

@@ -1,6 +1,7 @@
 package com.dinotoptrumps.auth.adapters.in;
 
 import com.dinotoptrumps.auth.adapters.in.dto.ChangePasswordRequest;
+import com.dinotoptrumps.auth.adapters.in.dto.DeleteAccountRequest;
 import com.dinotoptrumps.auth.adapters.in.dto.ForgotPasswordRequest;
 import com.dinotoptrumps.auth.adapters.in.dto.LoginRequest;
 import com.dinotoptrumps.auth.adapters.in.dto.LoginResponse;
@@ -159,9 +160,10 @@ public class AuthController {
     }
 
     @DeleteMapping("/me")
-    public ResponseEntity<Void> deleteAccount(Authentication authentication) {
+    public ResponseEntity<Void> deleteAccount(Authentication authentication,
+                                              @Valid @RequestBody DeleteAccountRequest request) {
         UUID userId = (UUID) authentication.getPrincipal();
-        forManagingProfile.deleteAccount(userId);
+        forManagingProfile.deleteAccount(userId, request.password());
         return ResponseEntity.noContent().build();
     }
 

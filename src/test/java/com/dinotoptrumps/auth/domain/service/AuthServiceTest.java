@@ -210,5 +210,47 @@ class AuthServiceTest {
 
             verify(userRepository, never()).save(any());
         }
+
+        @Test
+        void changePassword_samePassword_throws() {
+            UUID userId = UUID.randomUUID();
+            User user = TestFixtures.createUser(userId, "alice");
+            when(userRepository.findById(userId)).thenReturn(Optional.of(user));
+            when(passwordEncoder.matches("password123", "hash")).thenReturn(true);
+
+            assertThrows(InvalidPasswordException.class,
+                    () -> authService.changePassword(userId, "password123", "password123"));
+
+            verify(userRepository, never()).save(any());
+        }
+    }
+
+    @Nested
+    class DeleteAccount {
+
+        @Test
+        void deleteAccount_correctPassword_deletes() {
+            UUID userId = UUID.randomUUID();
+            User user = TestFixtures.createUser(userId, "alice");
+            when(userRepository.findById(userId)).thenReturn(Optional.of(user));
+            when(passwordEncoder.matches("password123", "hash")).thenReturn(true);
+
+            authService.deleteAccount(userId, "password123");
+
+            verify(userRepository).deleteById(userId);
+        }
+
+        @Test
+        void deleteAccount_wrongPassword_throws() {
+            UUID userId = UUID.randomUUID();
+            User user = TestFixtures.createUser(userId, "alice");
+            when(userRepository.findById(userId)).thenReturn(Optional.of(user));
+            when(passwordEncoder.matches("wrongpw", "hash")).thenReturn(false);
+
+            assertThrows(InvalidPasswordException.class,
+                    () -> authService.deleteAccount(userId, "wrongpw"));
+
+            verify(userRepository, never()).deleteById(any());
+        }
     }
 }
