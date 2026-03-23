@@ -71,4 +71,53 @@ class EloServiceTest {
         int[] ratings = eloService.updateRatings(1500, 1200);
         assertEquals(2, ratings.length);
     }
+
+    // --- Dynamic K-factor tests ---
+
+    @Test
+    void getKFactor_placement_returns64() {
+        // gamesPlayed=5 → placement phase, K=64
+        // Win against equal opponent (expected=0.5) → gain = round(64 * 0.5) = 32
+        int placementGain = eloService.calculateNewRating(1000, 1000, 1.0, 5) - 1000;
+        assertEquals(32, placementGain);
+    }
+
+    @Test
+    void getKFactor_calibrating_returns48() {
+        // gamesPlayed=15 → calibrating phase, K=48
+        // Win against equal opponent → gain = round(48 * 0.5) = 24
+        int calibratingGain = eloService.calculateNewRating(1000, 1000, 1.0, 15) - 1000;
+        assertEquals(24, calibratingGain);
+    }
+
+    @Test
+    void getKFactor_stable_returns32() {
+        // gamesPlayed=50 → stable phase, K=32
+        // Win against equal opponent → gain = round(32 * 0.5) = 16
+        int stableGain = eloService.calculateNewRating(1000, 1000, 1.0, 50) - 1000;
+        assertEquals(16, stableGain);
+    }
+
+    @Test
+    void updateRatings_placementPhase_largerSwings() {
+        // Placement games should produce bigger rating changes than stable games
+        int[] placementRatings = eloService.updateRatings(1000, 1000, 5, 5);
+        int[] stableRatings = eloService.updateRatings(1000, 1000, 30, 30);
+
+        int placementSwing = placementRatings[0] - 1000;
+        int stableSwing = stableRatings[0] - 1000;
+
+        assertTrue(placementSwing > stableSwing,
+                "Placement phase should produce larger rating swings than stable phase");
+    }
+
+    @Test
+    void updateRatings_withGamesPlayed_delegatesCorrectly() {
+        // 4-param version with equal ratings and winner in placement → winner gains 32 LP
+        int[] ratings = eloService.updateRatings(1000, 1000, 5, 30);
+        // winner K=64: gain = 64 * (1 - 0.5) = 32
+        // loser K=32: loss = 32 * (0 - 0.5) = -16
+        assertEquals(1032, ratings[0], "Winner in placement should gain 32 LP");
+        assertEquals(984, ratings[1], "Loser in stable phase should lose 16 LP");
+    }
 }

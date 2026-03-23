@@ -1,5 +1,6 @@
 package com.dinotoptrumps.auth.adapters.in.dto;
 
+import com.dinotoptrumps.auth.domain.model.RankTier;
 import com.dinotoptrumps.auth.domain.model.User;
 
 import java.time.Instant;
@@ -13,6 +14,8 @@ public record AdminUserEntry(
         String role,
         String status,
         int eloRating,
+        int leaguePoints,
+        RankTier rankTier,
         int gamesPlayed,
         int gamesWon,
         Instant createdAt
@@ -26,6 +29,8 @@ public record AdminUserEntry(
                 user.getRole().name(),
                 user.getStatus().name(),
                 user.getEloRating(),
+                RankTier.calculateLeaguePoints(user.getEloRating()),
+                RankTier.fromElo(user.getEloRating()),
                 user.getGamesPlayed(),
                 user.getGamesWon(),
                 user.getCreatedAt()

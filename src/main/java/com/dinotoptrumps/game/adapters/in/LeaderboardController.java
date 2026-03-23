@@ -30,7 +30,7 @@ public class LeaderboardController {
                         profile.getUserId(),
                         profile.getUsername(),
                         profile.getDisplayName(),
-                        profile.getEloRating(),
+                        RankTier.calculateLeaguePoints(profile.getEloRating()),
                         profile.getGamesPlayed(),
                         profile.getGamesWon(),
                         RankTier.fromElo(profile.getEloRating())

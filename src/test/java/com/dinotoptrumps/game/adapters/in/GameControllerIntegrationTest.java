@@ -147,7 +147,7 @@ class GameControllerIntegrationTest {
                         .header("Authorization", "Bearer " + token))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$").isArray())
-                .andExpect(jsonPath("$[0].eloRating").isNumber());
+                .andExpect(jsonPath("$[0].leaguePoints").isNumber());
     }
 
     @Test

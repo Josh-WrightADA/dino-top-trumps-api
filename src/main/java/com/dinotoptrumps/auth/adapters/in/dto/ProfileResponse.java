@@ -12,7 +12,7 @@ public record ProfileResponse(
         String bio,
         UUID favouriteCardId,
         String role,
-        int eloRating,
+        int leaguePoints,
         int gamesPlayed,
         int gamesWon,
         RankTier rankTier
@@ -25,7 +25,7 @@ public record ProfileResponse(
                 profile.getBio(),
                 profile.getFavouriteCardId(),
                 profile.getRole(),
-                profile.getEloRating(),
+                RankTier.calculateLeaguePoints(profile.getEloRating()),
                 profile.getGamesPlayed(),
                 profile.getGamesWon(),
                 RankTier.fromElo(profile.getEloRating())

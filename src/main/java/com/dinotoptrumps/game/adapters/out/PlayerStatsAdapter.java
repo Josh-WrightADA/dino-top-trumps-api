@@ -26,7 +26,9 @@ public class PlayerStatsAdapter implements ForUpdatingPlayerStats {
         User loser = userRepository.findById(loserId)
                 .orElseThrow(() -> new IllegalStateException("Loser not found: " + loserId));
 
-        int[] newRatings = eloService.updateRatings(winner.getEloRating(), loser.getEloRating());
+        int[] newRatings = eloService.updateRatings(
+                winner.getEloRating(), loser.getEloRating(),
+                winner.getGamesPlayed(), loser.getGamesPlayed());
 
         winner.setEloRating(newRatings[0]);
         winner.incrementGamesPlayed();
