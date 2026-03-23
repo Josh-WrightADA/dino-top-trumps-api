@@ -6,14 +6,14 @@ import com.dinotoptrumps.auth.domain.model.User;
 import com.dinotoptrumps.auth.ports.out.ForPersistingUsers;
 import com.dinotoptrumps.social.domain.exception.CannotFriendYourselfException;
 import com.dinotoptrumps.social.domain.exception.FriendRequestAlreadyExistsException;
-import com.dinotoptrumps.social.domain.exception.FriendshipNotFoundException;
 import com.dinotoptrumps.social.domain.model.Friendship;
 import com.dinotoptrumps.social.domain.model.FriendshipStatus;
 import com.dinotoptrumps.social.ports.out.ForPersistingFriendships;
+import com.dinotoptrumps.support.TestFixtures;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
-import java.time.Instant;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -42,100 +42,109 @@ class FriendshipServiceTest {
         when(friendshipRepo.save(any(Friendship.class))).thenAnswer(inv -> inv.getArgument(0));
     }
 
-    private User activeUser(UUID id) {
-        return new User(id, "user_" + id, id + "@test.com", "hash", "Display", "", null, null,
-                Role.PLAYER, AccountStatus.ACTIVE, 1000, 0, 0, Instant.now(), Instant.now());
+    @Nested
+    class SendFriendRequest {
+
+        @Test
+        void sendFriendRequest_createsRequest() {
+            User addressee = TestFixtures.createUser(addresseeId, "addressee");
+            when(userRepo.findById(addresseeId)).thenReturn(Optional.of(addressee));
+            when(friendshipRepo.findByRequesterAndAddressee(requesterId, addresseeId)).thenReturn(Optional.empty());
+            when(friendshipRepo.findByRequesterAndAddressee(addresseeId, requesterId)).thenReturn(Optional.empty());
+
+            Friendship result = service.sendFriendRequest(requesterId, addresseeId);
+
+            assertEquals(FriendshipStatus.PENDING, result.getStatus());
+            assertEquals(requesterId, result.getRequesterId());
+            assertEquals(addresseeId, result.getAddresseeId());
+            verify(friendshipRepo).save(any(Friendship.class));
+        }
+
+        @Test
+        void sendFriendRequest_cannotFriendSelf() {
+            assertThrows(CannotFriendYourselfException.class,
+                    () -> service.sendFriendRequest(requesterId, requesterId));
+        }
+
+        @Test
+        void sendFriendRequest_duplicateBlocked() {
+            User addressee = TestFixtures.createUser(addresseeId, "addressee");
+            when(userRepo.findById(addresseeId)).thenReturn(Optional.of(addressee));
+
+            Friendship existing = Friendship.create(requesterId, addresseeId);
+            when(friendshipRepo.findByRequesterAndAddressee(requesterId, addresseeId))
+                    .thenReturn(Optional.of(existing));
+            when(friendshipRepo.findByRequesterAndAddressee(addresseeId, requesterId))
+                    .thenReturn(Optional.empty());
+
+            assertThrows(FriendRequestAlreadyExistsException.class,
+                    () -> service.sendFriendRequest(requesterId, addresseeId));
+        }
+
+        @Test
+        void sendFriendRequest_bannedUserBlocked() {
+            User banned = TestFixtures.createUser(addresseeId, "banned", Role.PLAYER, AccountStatus.BANNED);
+            when(userRepo.findById(addresseeId)).thenReturn(Optional.of(banned));
+            when(friendshipRepo.findByRequesterAndAddressee(any(), any())).thenReturn(Optional.empty());
+
+            assertThrows(IllegalStateException.class,
+                    () -> service.sendFriendRequest(requesterId, addresseeId));
+        }
     }
 
-    private User bannedUser(UUID id) {
-        return new User(id, "banned_" + id, id + "@test.com", "hash", "Banned", "", null, null,
-                Role.PLAYER, AccountStatus.BANNED, 1000, 0, 0, Instant.now(), Instant.now());
+    @Nested
+    class AcceptFriendRequest {
+
+        @Test
+        void acceptFriendRequest_acceptsRequest() {
+            Friendship pending = Friendship.create(requesterId, addresseeId);
+            when(friendshipRepo.findById(pending.getId())).thenReturn(Optional.of(pending));
+
+            Friendship result = service.acceptFriendRequest(pending.getId(), addresseeId);
+
+            assertEquals(FriendshipStatus.ACCEPTED, result.getStatus());
+            verify(friendshipRepo).save(any(Friendship.class));
+        }
+
+        @Test
+        void acceptFriendRequest_nonAddresseeRejected() {
+            UUID outsider = UUID.randomUUID();
+            Friendship pending = Friendship.create(requesterId, addresseeId);
+            when(friendshipRepo.findById(pending.getId())).thenReturn(Optional.of(pending));
+
+            assertThrows(IllegalArgumentException.class,
+                    () -> service.acceptFriendRequest(pending.getId(), outsider));
+        }
     }
 
-    @Test
-    void sendFriendRequest_createsRequest() {
-        when(userRepo.findById(addresseeId)).thenReturn(Optional.of(activeUser(addresseeId)));
-        when(friendshipRepo.findByRequesterAndAddressee(requesterId, addresseeId)).thenReturn(Optional.empty());
-        when(friendshipRepo.findByRequesterAndAddressee(addresseeId, requesterId)).thenReturn(Optional.empty());
+    @Nested
+    class DeclineFriendRequest {
 
-        Friendship result = service.sendFriendRequest(requesterId, addresseeId);
+        @Test
+        void declineFriendRequest_declinesRequest() {
+            Friendship pending = Friendship.create(requesterId, addresseeId);
+            when(friendshipRepo.findById(pending.getId())).thenReturn(Optional.of(pending));
 
-        assertEquals(FriendshipStatus.PENDING, result.getStatus());
-        assertEquals(requesterId, result.getRequesterId());
-        assertEquals(addresseeId, result.getAddresseeId());
-        verify(friendshipRepo).save(any(Friendship.class));
+            Friendship result = service.declineFriendRequest(pending.getId(), addresseeId);
+
+            assertEquals(FriendshipStatus.DECLINED, result.getStatus());
+            verify(friendshipRepo).save(any(Friendship.class));
+        }
     }
 
-    @Test
-    void sendFriendRequest_cannotFriendSelf() {
-        assertThrows(CannotFriendYourselfException.class,
-                () -> service.sendFriendRequest(requesterId, requesterId));
-    }
+    @Nested
+    class RemoveFriend {
 
-    @Test
-    void sendFriendRequest_duplicateBlocked() {
-        when(userRepo.findById(addresseeId)).thenReturn(Optional.of(activeUser(addresseeId)));
+        @Test
+        void removeFriend_removesAcceptedFriendship() {
+            Friendship pending = Friendship.create(requesterId, addresseeId);
+            pending.accept();
+            when(friendshipRepo.findById(pending.getId())).thenReturn(Optional.of(pending));
 
-        Friendship existing = Friendship.create(requesterId, addresseeId);
-        when(friendshipRepo.findByRequesterAndAddressee(requesterId, addresseeId))
-                .thenReturn(Optional.of(existing));
-        when(friendshipRepo.findByRequesterAndAddressee(addresseeId, requesterId))
-                .thenReturn(Optional.empty());
+            service.removeFriend(pending.getId(), requesterId);
 
-        assertThrows(FriendRequestAlreadyExistsException.class,
-                () -> service.sendFriendRequest(requesterId, addresseeId));
-    }
-
-    @Test
-    void sendFriendRequest_bannedUserBlocked() {
-        when(userRepo.findById(addresseeId)).thenReturn(Optional.of(bannedUser(addresseeId)));
-        when(friendshipRepo.findByRequesterAndAddressee(any(), any())).thenReturn(Optional.empty());
-
-        assertThrows(IllegalStateException.class,
-                () -> service.sendFriendRequest(requesterId, addresseeId));
-    }
-
-    @Test
-    void acceptFriendRequest_acceptsRequest() {
-        Friendship pending = Friendship.create(requesterId, addresseeId);
-        when(friendshipRepo.findById(pending.getId())).thenReturn(Optional.of(pending));
-
-        Friendship result = service.acceptFriendRequest(pending.getId(), addresseeId);
-
-        assertEquals(FriendshipStatus.ACCEPTED, result.getStatus());
-        verify(friendshipRepo).save(any(Friendship.class));
-    }
-
-    @Test
-    void acceptFriendRequest_nonAddresseeRejected() {
-        UUID outsider = UUID.randomUUID();
-        Friendship pending = Friendship.create(requesterId, addresseeId);
-        when(friendshipRepo.findById(pending.getId())).thenReturn(Optional.of(pending));
-
-        assertThrows(IllegalArgumentException.class,
-                () -> service.acceptFriendRequest(pending.getId(), outsider));
-    }
-
-    @Test
-    void declineFriendRequest_declinesRequest() {
-        Friendship pending = Friendship.create(requesterId, addresseeId);
-        when(friendshipRepo.findById(pending.getId())).thenReturn(Optional.of(pending));
-
-        Friendship result = service.declineFriendRequest(pending.getId(), addresseeId);
-
-        assertEquals(FriendshipStatus.DECLINED, result.getStatus());
-        verify(friendshipRepo).save(any(Friendship.class));
-    }
-
-    @Test
-    void removeFriend_removesAcceptedFriendship() {
-        Friendship pending = Friendship.create(requesterId, addresseeId);
-        pending.accept();
-        when(friendshipRepo.findById(pending.getId())).thenReturn(Optional.of(pending));
-
-        service.removeFriend(pending.getId(), requesterId);
-
-        assertEquals(FriendshipStatus.REMOVED, pending.getStatus());
-        verify(friendshipRepo).save(any(Friendship.class));
+            assertEquals(FriendshipStatus.REMOVED, pending.getStatus());
+            verify(friendshipRepo).save(any(Friendship.class));
+        }
     }
 }
