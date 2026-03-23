@@ -85,6 +85,9 @@ public class AdminController {
         return ResponseEntity.ok(ReportResponse.from(report));
     }
 
+    // AdminGameEntry maps game data for the admin view.
+    // The Game import is at the adapter layer (not domain), which is the
+    // integration point between bounded contexts in a monolith.
     public record AdminGameEntry(
             UUID id,
             String status,

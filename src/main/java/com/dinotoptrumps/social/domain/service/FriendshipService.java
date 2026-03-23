@@ -1,12 +1,12 @@
 package com.dinotoptrumps.social.domain.service;
 
-import com.dinotoptrumps.auth.ports.out.ForPersistingUsers;
 import com.dinotoptrumps.social.domain.exception.CannotFriendYourselfException;
 import com.dinotoptrumps.social.domain.exception.FriendRequestAlreadyExistsException;
 import com.dinotoptrumps.social.domain.exception.FriendshipNotFoundException;
 import com.dinotoptrumps.social.domain.model.Friendship;
 import com.dinotoptrumps.social.domain.model.FriendshipStatus;
 import com.dinotoptrumps.social.ports.in.ForManagingFriendships;
+import com.dinotoptrumps.social.ports.out.ForLookingUpUsers;
 import com.dinotoptrumps.social.ports.out.ForPersistingFriendships;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -20,11 +20,11 @@ public class FriendshipService implements ForManagingFriendships {
     private static final Logger log = LoggerFactory.getLogger(FriendshipService.class);
 
     private final ForPersistingFriendships friendshipRepo;
-    private final ForPersistingUsers userRepo;
+    private final ForLookingUpUsers userLookup;
 
-    public FriendshipService(ForPersistingFriendships friendshipRepo, ForPersistingUsers userRepo) {
+    public FriendshipService(ForPersistingFriendships friendshipRepo, ForLookingUpUsers userLookup) {
         this.friendshipRepo = friendshipRepo;
-        this.userRepo = userRepo;
+        this.userLookup = userLookup;
     }
 
     @Override
@@ -33,14 +33,8 @@ public class FriendshipService implements ForManagingFriendships {
             throw new CannotFriendYourselfException("You cannot send a friend request to yourself");
         }
 
-        userRepo.findById(addresseeId)
-                .orElseThrow(() -> new IllegalArgumentException("User not found: " + addresseeId));
-
-        boolean addresseeBanned = userRepo.findById(addresseeId)
-                .map(u -> u.isBanned())
-                .orElse(false);
-        if (addresseeBanned) {
-            throw new IllegalStateException("Cannot send friend request to this user");
+        if (!userLookup.userExistsAndIsActive(addresseeId)) {
+            throw new IllegalArgumentException("User not found or not available");
         }
 
         Optional<Friendship> existingAB = friendshipRepo.findByRequesterAndAddressee(requesterId, addresseeId);

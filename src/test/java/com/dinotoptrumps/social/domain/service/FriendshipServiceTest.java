@@ -1,15 +1,11 @@
 package com.dinotoptrumps.social.domain.service;
 
-import com.dinotoptrumps.auth.domain.model.AccountStatus;
-import com.dinotoptrumps.auth.domain.model.Role;
-import com.dinotoptrumps.auth.domain.model.User;
-import com.dinotoptrumps.auth.ports.out.ForPersistingUsers;
 import com.dinotoptrumps.social.domain.exception.CannotFriendYourselfException;
 import com.dinotoptrumps.social.domain.exception.FriendRequestAlreadyExistsException;
 import com.dinotoptrumps.social.domain.model.Friendship;
 import com.dinotoptrumps.social.domain.model.FriendshipStatus;
+import com.dinotoptrumps.social.ports.out.ForLookingUpUsers;
 import com.dinotoptrumps.social.ports.out.ForPersistingFriendships;
-import com.dinotoptrumps.support.TestFixtures;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -27,7 +23,7 @@ import static org.mockito.Mockito.when;
 class FriendshipServiceTest {
 
     private ForPersistingFriendships friendshipRepo;
-    private ForPersistingUsers userRepo;
+    private ForLookingUpUsers userLookup;
     private FriendshipService service;
 
     private final UUID requesterId = UUID.randomUUID();
@@ -36,8 +32,8 @@ class FriendshipServiceTest {
     @BeforeEach
     void setUp() {
         friendshipRepo = mock(ForPersistingFriendships.class);
-        userRepo = mock(ForPersistingUsers.class);
-        service = new FriendshipService(friendshipRepo, userRepo);
+        userLookup = mock(ForLookingUpUsers.class);
+        service = new FriendshipService(friendshipRepo, userLookup);
 
         when(friendshipRepo.save(any(Friendship.class))).thenAnswer(inv -> inv.getArgument(0));
     }
@@ -47,8 +43,7 @@ class FriendshipServiceTest {
 
         @Test
         void sendFriendRequest_createsRequest() {
-            User addressee = TestFixtures.createUser(addresseeId, "addressee");
-            when(userRepo.findById(addresseeId)).thenReturn(Optional.of(addressee));
+            when(userLookup.userExistsAndIsActive(addresseeId)).thenReturn(true);
             when(friendshipRepo.findByRequesterAndAddressee(requesterId, addresseeId)).thenReturn(Optional.empty());
             when(friendshipRepo.findByRequesterAndAddressee(addresseeId, requesterId)).thenReturn(Optional.empty());
 
@@ -68,8 +63,7 @@ class FriendshipServiceTest {
 
         @Test
         void sendFriendRequest_duplicateBlocked() {
-            User addressee = TestFixtures.createUser(addresseeId, "addressee");
-            when(userRepo.findById(addresseeId)).thenReturn(Optional.of(addressee));
+            when(userLookup.userExistsAndIsActive(addresseeId)).thenReturn(true);
 
             Friendship existing = Friendship.create(requesterId, addresseeId);
             when(friendshipRepo.findByRequesterAndAddressee(requesterId, addresseeId))
@@ -82,12 +76,19 @@ class FriendshipServiceTest {
         }
 
         @Test
-        void sendFriendRequest_bannedUserBlocked() {
-            User banned = TestFixtures.createUser(addresseeId, "banned", Role.PLAYER, AccountStatus.BANNED);
-            when(userRepo.findById(addresseeId)).thenReturn(Optional.of(banned));
-            when(friendshipRepo.findByRequesterAndAddressee(any(), any())).thenReturn(Optional.empty());
+        void sendFriendRequest_userNotFoundBlocked() {
+            when(userLookup.userExistsAndIsActive(addresseeId)).thenReturn(false);
 
-            assertThrows(IllegalStateException.class,
+            assertThrows(IllegalArgumentException.class,
+                    () -> service.sendFriendRequest(requesterId, addresseeId));
+        }
+
+        @Test
+        void sendFriendRequest_bannedUserBlocked() {
+            // userExistsAndIsActive returns false for banned users
+            when(userLookup.userExistsAndIsActive(addresseeId)).thenReturn(false);
+
+            assertThrows(IllegalArgumentException.class,
                     () -> service.sendFriendRequest(requesterId, addresseeId));
         }
     }

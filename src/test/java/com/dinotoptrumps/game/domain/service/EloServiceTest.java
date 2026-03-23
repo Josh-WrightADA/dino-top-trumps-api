@@ -34,32 +34,34 @@ class EloServiceTest {
 
     @Test
     void expectedWin_shouldGainSmallRating() {
-        int newRating = eloService.calculateNewRating(1200, 1000, 1.0);
+        // stable phase (30 games) → K=32, gain should be small
+        int newRating = eloService.calculateNewRating(1200, 1000, 1.0, 30);
         assertTrue(newRating > 1200 && newRating < 1210);
     }
 
     @Test
     void upsetWin_shouldGainLargeRating() {
-        int expectedWinGain = eloService.calculateNewRating(1200, 1000, 1.0) - 1200;
-        int upsetWinGain = eloService.calculateNewRating(1000, 1200, 1.0) - 1000;
+        int expectedWinGain = eloService.calculateNewRating(1200, 1000, 1.0, 30) - 1200;
+        int upsetWinGain = eloService.calculateNewRating(1000, 1200, 1.0, 30) - 1000;
         assertTrue(upsetWinGain > expectedWinGain);
     }
 
     @Test
     void loss_shouldDecreaseRating() {
-        int newRating = eloService.calculateNewRating(1000, 1000, 0.0);
+        int newRating = eloService.calculateNewRating(1000, 1000, 0.0, 30);
         assertTrue(newRating < 1000);
     }
 
     @Test
     void ratingFloor_shouldNotGoBelowMinimum() {
-        int newRating = eloService.calculateNewRating(100, 2000, 0.0);
+        int newRating = eloService.calculateNewRating(100, 2000, 0.0, 30);
         assertTrue(newRating >= 100);
     }
 
     @Test
     void updateRatings_winnerGainsWhatLoserLoses() {
-        int[] ratings = eloService.updateRatings(1000, 1000);
+        // equal stable-phase players
+        int[] ratings = eloService.updateRatings(1000, 1000, 30, 30);
         int winnerNew = ratings[0];
         int loserNew = ratings[1];
         assertTrue(winnerNew > 1000 && loserNew < 1000);
@@ -68,7 +70,7 @@ class EloServiceTest {
 
     @Test
     void updateRatings_returnsArrayOfTwoRatings() {
-        int[] ratings = eloService.updateRatings(1500, 1200);
+        int[] ratings = eloService.updateRatings(1500, 1200, 30, 30);
         assertEquals(2, ratings.length);
     }
 

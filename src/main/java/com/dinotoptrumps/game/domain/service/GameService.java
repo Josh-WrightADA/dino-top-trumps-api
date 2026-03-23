@@ -190,8 +190,7 @@ public class GameService implements ForCreatingGame, ForJoiningGame, ForPlayingT
 
     @Override
     public void deleteGame(UUID gameId) {
-        gameRepository.findById(gameId)
-                .orElseThrow(() -> new GameNotFoundException("Game not found: " + gameId));
+        findGameOrThrow(gameId);
         gameRepository.deleteById(gameId);
         log.info("event_type=GAME_DELETED gameId={}", gameId);
     }
@@ -228,15 +227,17 @@ public class GameService implements ForCreatingGame, ForJoiningGame, ForPlayingT
         if (!game.isTimedOut()) {
             return;
         }
+        forfeitTimedOutGame(game);
+        log.info("Game {} forfeited due to timeout", gameId);
+        throw new InvalidGameStateException("Turn timed out — game forfeited");
+    }
+
+    private void forfeitTimedOutGame(Game game) {
         UUID currentPlayer = game.getCurrentTurnPlayerId();
-        UUID opponentId = game.isPlayer1(currentPlayer)
-                ? game.getPlayer2Id()
-                : game.getPlayer1Id();
+        UUID opponentId = game.isPlayer1(currentPlayer) ? game.getPlayer2Id() : game.getPlayer1Id();
         game.forfeit(opponentId);
         gameRepository.save(game);
         playerStats.updateStatsAfterGame(opponentId, currentPlayer);
-        log.info("Game {} forfeited due to timeout", gameId);
-        throw new InvalidGameStateException("Turn timed out — game forfeited");
     }
 
     @Override
@@ -254,13 +255,7 @@ public class GameService implements ForCreatingGame, ForJoiningGame, ForPlayingT
                 count++;
                 log.info("Cleaned up stale WAITING game {}", game.getId());
             } else if (game.getStatus() == GameStatus.IN_PROGRESS && game.isTimedOut()) {
-                UUID currentPlayer = game.getCurrentTurnPlayerId();
-                UUID opponentId = game.isPlayer1(currentPlayer)
-                        ? game.getPlayer2Id()
-                        : game.getPlayer1Id();
-                game.forfeit(opponentId);
-                gameRepository.save(game);
-                playerStats.updateStatsAfterGame(opponentId, currentPlayer);
+                forfeitTimedOutGame(game);
                 count++;
                 log.info("Cleaned up timed-out IN_PROGRESS game {}", game.getId());
             }

@@ -8,6 +8,9 @@ import org.springframework.stereotype.Component;
 
 import java.util.UUID;
 
+// This adapter bridges the game→auth bounded context boundary.
+// It accesses User domain model because it needs to update player stats.
+// In a microservices architecture, this would be an API call instead.
 @Component
 public class PlayerStatsAdapter implements ForUpdatingPlayerStats {
 
