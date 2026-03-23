@@ -107,14 +107,20 @@ public class AuthService implements ForRegistering, ForAuthenticating, ForManagi
         if (!passwordEncoder.matches(currentPassword, user.getPasswordHash())) {
             throw new InvalidPasswordException("Current password is incorrect");
         }
+        if (passwordEncoder.matches(newPassword, user.getPasswordHash())) {
+            throw new InvalidPasswordException("New password must be different from current password");
+        }
         user.setPasswordHash(passwordEncoder.encode(newPassword));
         userRepository.save(user);
         log.info("event_type=PASSWORD_CHANGED userId={}", userId);
     }
 
     @Override
-    public void deleteAccount(UUID userId) {
-        getUserOrThrow(userId);
+    public void deleteAccount(UUID userId, String password) {
+        User user = getUserOrThrow(userId);
+        if (!passwordEncoder.matches(password, user.getPasswordHash())) {
+            throw new InvalidPasswordException("Incorrect password");
+        }
         userRepository.deleteById(userId);
         log.info("event_type=ACCOUNT_DELETED userId={}", userId);
     }

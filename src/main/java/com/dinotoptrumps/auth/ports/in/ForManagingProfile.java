@@ -9,5 +9,5 @@ public interface ForManagingProfile {
     User updateProfile(UUID userId, String displayName, String bio, UUID favouriteCardId);
     User updateAvatar(UUID userId, String avatarUrl);
     void changePassword(UUID userId, String currentPassword, String newPassword);
-    void deleteAccount(UUID userId);
+    void deleteAccount(UUID userId, String password);
 }
