@@ -18,6 +18,7 @@ public class Game {
     private List<UUID> player2Hand;
     private List<UUID> drawPile;
     private UUID winnerId;
+    private GameEndReason gameEndReason;
     private Instant turnDeadline;
     private final Instant createdAt;
     private Instant updatedAt;
@@ -26,8 +27,8 @@ public class Game {
 
     public Game(UUID id, UUID player1Id, UUID player2Id, GameStatus status,
                 UUID currentTurnPlayerId, List<UUID> player1Hand, List<UUID> player2Hand,
-                List<UUID> drawPile, UUID winnerId, Instant turnDeadline,
-                Instant createdAt, Instant updatedAt) {
+                List<UUID> drawPile, UUID winnerId, GameEndReason gameEndReason,
+                Instant turnDeadline, Instant createdAt, Instant updatedAt) {
         this.id = id;
         this.player1Id = player1Id;
         this.player2Id = player2Id;
@@ -37,6 +38,7 @@ public class Game {
         this.player2Hand = player2Hand;
         this.drawPile = drawPile;
         this.winnerId = winnerId;
+        this.gameEndReason = gameEndReason;
         this.turnDeadline = turnDeadline;
         this.createdAt = createdAt;
         this.updatedAt = updatedAt;
@@ -55,6 +57,7 @@ public class Game {
                 List.of(),
                 null,
                 null,
+                null,
                 now,
                 now
         );
@@ -71,6 +74,7 @@ public class Game {
     public List<UUID> getPlayer2Hand() { return Collections.unmodifiableList(player2Hand); }
     public List<UUID> getDrawPile() { return Collections.unmodifiableList(drawPile); }
     public UUID getWinnerId() { return winnerId; }
+    public GameEndReason getGameEndReason() { return gameEndReason; }
     public Instant getTurnDeadline() { return turnDeadline; }
     public Instant getCreatedAt() { return createdAt; }
     public Instant getUpdatedAt() { return updatedAt; }
@@ -152,11 +156,13 @@ public class Game {
     public void checkGameOver() {
         if (player1Hand.isEmpty()) {
             this.winnerId = player2Id;
+            this.gameEndReason = GameEndReason.NORMAL;
             this.status = GameStatus.FINISHED;
             this.turnDeadline = null;
             this.updatedAt = Instant.now();
         } else if (player2Hand.isEmpty()) {
             this.winnerId = player1Id;
+            this.gameEndReason = GameEndReason.NORMAL;
             this.status = GameStatus.FINISHED;
             this.turnDeadline = null;
             this.updatedAt = Instant.now();
@@ -166,8 +172,9 @@ public class Game {
     /**
      * Forfeits the game — the specified winner wins by forfeit.
      */
-    public void forfeit(UUID winningPlayerId) {
+    public void forfeit(UUID winningPlayerId, GameEndReason reason) {
         this.winnerId = winningPlayerId;
+        this.gameEndReason = reason;
         this.status = GameStatus.FINISHED;
         this.turnDeadline = null;
         this.updatedAt = Instant.now();

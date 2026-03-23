@@ -246,7 +246,7 @@ class GameServiceTest {
         Instant now = Instant.now();
         return new Game(UUID.randomUUID(), player1Id, player2Id, GameStatus.IN_PROGRESS,
                 player1Id, List.of(strongDino.getId()), List.of(fastDino.getId()),
-                new ArrayList<>(), null, Instant.now().plusSeconds(30), now, now);
+                new ArrayList<>(), null, null, Instant.now().plusSeconds(30), now, now);
     }
 
     private Game createGameWithHands(Card p1Card, Card p2Card) {
@@ -255,7 +255,7 @@ class GameServiceTest {
                 player1Id,
                 new ArrayList<>(List.of(p1Card.getId())),
                 new ArrayList<>(List.of(p2Card.getId())),
-                new ArrayList<>(), null, Instant.now().plusSeconds(30), now, now);
+                new ArrayList<>(), null, null, Instant.now().plusSeconds(30), now, now);
     }
 
     private Game createGameWithMultipleCards(List<UUID> p1Cards, List<UUID> p2Cards) {
@@ -264,14 +264,14 @@ class GameServiceTest {
                 player1Id,
                 new ArrayList<>(p1Cards),
                 new ArrayList<>(p2Cards),
-                new ArrayList<>(), null, Instant.now().plusSeconds(30), now, now);
+                new ArrayList<>(), null, null, Instant.now().plusSeconds(30), now, now);
     }
 
     private Game createFinishedGame() {
         Instant now = Instant.now();
         return new Game(UUID.randomUUID(), player1Id, player2Id, GameStatus.FINISHED,
                 null, List.of(), List.of(),
-                List.of(), player1Id, null, now, now);
+                List.of(), player1Id, GameEndReason.NORMAL, null, now, now);
     }
 
     @Nested
@@ -322,6 +322,16 @@ class GameServiceTest {
         }
 
         @Test
+        void validForfeit_setsForFeitReason() {
+            Game game = createGameInProgress();
+            when(gameRepository.findById(game.getId())).thenReturn(Optional.of(game));
+
+            Game result = gameService.forfeitGame(game.getId(), player1Id);
+
+            assertEquals(GameEndReason.FORFEIT, result.getGameEndReason());
+        }
+
+        @Test
         void forfeit_finishedGame_throwsException() {
             Game game = createFinishedGame();
             when(gameRepository.findById(game.getId())).thenReturn(Optional.of(game));
@@ -341,7 +351,7 @@ class GameServiceTest {
                     player1Id,
                     new ArrayList<>(List.of(strongDino.getId())),
                     new ArrayList<>(List.of(fastDino.getId())),
-                    new ArrayList<>(), null, pastDeadline, Instant.now(), Instant.now());
+                    new ArrayList<>(), null, null, pastDeadline, Instant.now(), Instant.now());
 
             when(gameRepository.findById(game.getId())).thenReturn(Optional.of(game));
 
@@ -352,6 +362,49 @@ class GameServiceTest {
                     saved.getStatus() == GameStatus.FINISHED
                             && saved.getWinnerId().equals(player2Id)));
             verify(playerStats).updateStatsAfterGame(player2Id, player1Id);
+        }
+
+        @Test
+        void playTurn_whenTimedOut_setsTimeoutReason() {
+            Instant pastDeadline = Instant.now().minusSeconds(60);
+            Game game = new Game(UUID.randomUUID(), player1Id, player2Id, GameStatus.IN_PROGRESS,
+                    player1Id,
+                    new ArrayList<>(List.of(strongDino.getId())),
+                    new ArrayList<>(List.of(fastDino.getId())),
+                    new ArrayList<>(), null, null, pastDeadline, Instant.now(), Instant.now());
+
+            when(gameRepository.findById(game.getId())).thenReturn(Optional.of(game));
+
+            assertThrows(InvalidGameStateException.class,
+                    () -> gameService.playTurn(game.getId(), player1Id, Stat.STRENGTH));
+
+            verify(gameRepository).save(argThat(saved ->
+                    saved.getGameEndReason() == GameEndReason.TIMEOUT));
+        }
+    }
+
+    @Nested
+    class CheckGameOver {
+
+        @Test
+        void lastCard_setsNormalReason() {
+            Game game = new Game(UUID.randomUUID(), player1Id, player2Id, GameStatus.IN_PROGRESS,
+                    player1Id,
+                    new ArrayList<>(List.of(strongDino.getId())),
+                    new ArrayList<>(List.of(fastDino.getId())),
+                    new ArrayList<>(), null, null, Instant.now().plusSeconds(30),
+                    Instant.now(), Instant.now());
+
+            when(gameRepository.findById(game.getId())).thenReturn(Optional.of(game));
+            when(cardLoader.findById(strongDino.getId())).thenReturn(Optional.of(strongDino));
+            when(cardLoader.findById(fastDino.getId())).thenReturn(Optional.of(fastDino));
+            when(turnRepository.countByGameId(game.getId())).thenReturn(0);
+
+            gameService.playTurn(game.getId(), player1Id, Stat.STRENGTH);
+
+            verify(gameRepository).save(argThat(saved ->
+                    saved.getStatus() == GameStatus.FINISHED
+                            && saved.getGameEndReason() == GameEndReason.NORMAL));
         }
     }
 
@@ -378,7 +431,7 @@ class GameServiceTest {
                     GameStatus.IN_PROGRESS, player1Id,
                     new ArrayList<>(List.of(strongDino.getId())),
                     new ArrayList<>(List.of(fastDino.getId())),
-                    new ArrayList<>(), null, pastDeadline, Instant.now(), Instant.now());
+                    new ArrayList<>(), null, null, pastDeadline, Instant.now(), Instant.now());
 
             when(gameRepository.findStaleGames(any(Instant.class), any(Instant.class)))
                     .thenReturn(List.of(timedOut));

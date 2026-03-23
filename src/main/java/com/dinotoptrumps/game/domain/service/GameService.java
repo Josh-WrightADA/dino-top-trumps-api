@@ -5,6 +5,7 @@ import com.dinotoptrumps.game.domain.exception.GameNotFoundException;
 import com.dinotoptrumps.game.domain.exception.NotYourTurnException;
 import com.dinotoptrumps.game.domain.model.Card;
 import com.dinotoptrumps.game.domain.model.Game;
+import com.dinotoptrumps.game.domain.model.GameEndReason;
 import com.dinotoptrumps.game.domain.model.GameStatus;
 import com.dinotoptrumps.game.domain.model.Hand;
 import com.dinotoptrumps.game.domain.model.Stat;
@@ -147,7 +148,7 @@ public class GameService implements ForCreatingGame, ForJoiningGame, ForPlayingT
                 ? game.getPlayer2Id()
                 : game.getPlayer1Id();
 
-        game.forfeit(opponentId);
+        game.forfeit(opponentId, GameEndReason.FORFEIT);
         gameRepository.save(game);
         playerStats.updateStatsAfterGame(opponentId, playerId);
         log.info("Game {} forfeited by player", gameId);
@@ -235,7 +236,7 @@ public class GameService implements ForCreatingGame, ForJoiningGame, ForPlayingT
     private void forfeitTimedOutGame(Game game) {
         UUID currentPlayer = game.getCurrentTurnPlayerId();
         UUID opponentId = game.isPlayer1(currentPlayer) ? game.getPlayer2Id() : game.getPlayer1Id();
-        game.forfeit(opponentId);
+        game.forfeit(opponentId, GameEndReason.TIMEOUT);
         gameRepository.save(game);
         playerStats.updateStatsAfterGame(opponentId, currentPlayer);
     }
@@ -250,7 +251,7 @@ public class GameService implements ForCreatingGame, ForJoiningGame, ForPlayingT
 
         for (Game game : staleGames) {
             if (game.getStatus() == GameStatus.WAITING) {
-                game.forfeit(null);
+                game.forfeit(null, GameEndReason.TIMEOUT);
                 gameRepository.save(game);
                 count++;
                 log.info("Cleaned up stale WAITING game {}", game.getId());

@@ -45,6 +45,9 @@ public class GameJpaEntity {
     @Column(name = "winner_id")
     private UUID winnerId;
 
+    @Column(name = "game_end_reason")
+    private String gameEndReason;
+
     @Column(name = "turn_deadline")
     private Instant turnDeadline;
 

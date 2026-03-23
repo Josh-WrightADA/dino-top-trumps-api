@@ -1,6 +1,7 @@
 package com.dinotoptrumps.game.adapters.out;
 
 import com.dinotoptrumps.game.domain.model.Game;
+import com.dinotoptrumps.game.domain.model.GameEndReason;
 import com.dinotoptrumps.game.domain.model.GameStatus;
 
 import java.util.Arrays;
@@ -22,6 +23,7 @@ public class GameMapper {
         entity.setPlayer2Hand(serializeHand(game.getPlayer2Hand()));
         entity.setDrawPile(serializeHand(game.getDrawPile()));
         entity.setWinnerId(game.getWinnerId());
+        entity.setGameEndReason(game.getGameEndReason() != null ? game.getGameEndReason().name() : null);
         entity.setTurnDeadline(game.getTurnDeadline());
         entity.setCreatedAt(game.getCreatedAt());
         entity.setUpdatedAt(game.getUpdatedAt());
@@ -39,6 +41,7 @@ public class GameMapper {
                 deserializeHand(entity.getPlayer2Hand()),
                 deserializeHand(entity.getDrawPile()),
                 entity.getWinnerId(),
+                entity.getGameEndReason() != null ? GameEndReason.valueOf(entity.getGameEndReason()) : null,
                 entity.getTurnDeadline(),
                 entity.getCreatedAt(),
                 entity.getUpdatedAt()
