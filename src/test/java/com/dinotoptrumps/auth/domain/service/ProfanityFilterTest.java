@@ -50,4 +50,9 @@ class ProfanityFilterTest {
     void validateAllowsCleanText() {
         assertDoesNotThrow(() -> filter.validate("DinoKing42", "Username"));
     }
+
+    @Test
+    void detectsConcatenatedProfanity() {
+        assertTrue(filter.containsProfanity("noobjosh"));
+    }
 }

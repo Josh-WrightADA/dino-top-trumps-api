@@ -109,7 +109,7 @@ class AuthControllerIntegrationTest extends IntegrationTestBase {
     }
 
     @Test
-    void changePassword_wrongCurrentPassword_returns401() throws Exception {
+    void changePassword_wrongCurrentPassword_returns400() throws Exception {
         String token = registerAndLogin("badpwuser", "badpwuser@example.com", "password123");
 
         mockMvc.perform(put("/api/v1/auth/change-password")
@@ -119,7 +119,7 @@ class AuthControllerIntegrationTest extends IntegrationTestBase {
                                 "currentPassword", "wrongpassword",
                                 "newPassword", "newpassword456"
                         ))))
-                .andExpect(status().isUnauthorized());
+                .andExpect(status().isBadRequest());
     }
 
     @Test

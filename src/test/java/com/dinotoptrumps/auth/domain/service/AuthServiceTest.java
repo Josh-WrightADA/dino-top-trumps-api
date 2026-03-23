@@ -1,6 +1,7 @@
 package com.dinotoptrumps.auth.domain.service;
 
 import com.dinotoptrumps.auth.domain.exception.InvalidCredentialsException;
+import com.dinotoptrumps.auth.domain.exception.InvalidPasswordException;
 import com.dinotoptrumps.auth.domain.exception.UserAlreadyExistsException;
 import com.dinotoptrumps.auth.domain.model.AccountStatus;
 import com.dinotoptrumps.auth.domain.model.Role;
@@ -204,7 +205,7 @@ class AuthServiceTest {
             when(userRepository.findById(userId)).thenReturn(Optional.of(user));
             when(passwordEncoder.matches("wrongpw", "hash")).thenReturn(false);
 
-            assertThrows(InvalidCredentialsException.class,
+            assertThrows(InvalidPasswordException.class,
                     () -> authService.changePassword(userId, "wrongpw", "newpassword456"));
 
             verify(userRepository, never()).save(any());
