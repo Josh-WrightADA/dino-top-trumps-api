@@ -8,10 +8,11 @@ import com.dinotoptrumps.auth.domain.model.Role;
 import com.dinotoptrumps.auth.domain.model.User;
 import com.dinotoptrumps.auth.ports.out.ForPersistingReports;
 import com.dinotoptrumps.auth.ports.out.ForPersistingUsers;
+import com.dinotoptrumps.support.TestFixtures;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
-import java.time.Instant;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -34,45 +35,46 @@ class ReportServiceTest {
         reportService = new ReportService(reportRepository, userRepository);
     }
 
-    private User createUser(UUID id, String username, Role role, AccountStatus status) {
-        Instant now = Instant.now();
-        return new User(id, username, username + "@example.com", "hash",
-                username, "", null, null, role, status,
-                1000, 0, 0, now, now);
+    @Nested
+    class ReportUser {
+
+        @Test
+        void reportUser_createsReport() {
+            UUID reporterId = UUID.randomUUID();
+            UUID reportedId = UUID.randomUUID();
+            User reported = TestFixtures.createUser(reportedId, "reported", Role.PLAYER, AccountStatus.ACTIVE);
+            when(userRepository.findById(reportedId)).thenReturn(Optional.of(reported));
+            when(reportRepository.save(any(Report.class))).thenAnswer(inv -> inv.getArgument(0));
+
+            Report result = reportService.reportUser(reporterId, reportedId, "This user is abusive");
+
+            assertEquals(reporterId, result.getReporterId());
+            assertEquals(reportedId, result.getReportedUserId());
+            assertEquals(ReportStatus.PENDING, result.getStatus());
+        }
+
+        @Test
+        void reportUser_cannotReportSelf() {
+            UUID userId = UUID.randomUUID();
+
+            assertThrows(IllegalArgumentException.class,
+                    () -> reportService.reportUser(userId, userId, "trying to self report"));
+        }
     }
 
-    @Test
-    void reportUser_createsReport() {
-        UUID reporterId = UUID.randomUUID();
-        UUID reportedId = UUID.randomUUID();
-        User reported = createUser(reportedId, "reported", Role.PLAYER, AccountStatus.ACTIVE);
-        when(userRepository.findById(reportedId)).thenReturn(Optional.of(reported));
-        when(reportRepository.save(any(Report.class))).thenAnswer(inv -> inv.getArgument(0));
+    @Nested
+    class DismissReport {
 
-        Report result = reportService.reportUser(reporterId, reportedId, "This user is abusive");
+        @Test
+        void dismissReport_dismissesPendingReport() {
+            UUID reportId = UUID.randomUUID();
+            Report report = Report.create(UUID.randomUUID(), UUID.randomUUID(), "some reason");
+            when(reportRepository.findById(reportId)).thenReturn(Optional.of(report));
+            when(reportRepository.save(any(Report.class))).thenAnswer(inv -> inv.getArgument(0));
 
-        assertEquals(reporterId, result.getReporterId());
-        assertEquals(reportedId, result.getReportedUserId());
-        assertEquals(ReportStatus.PENDING, result.getStatus());
-    }
+            Report result = reportService.dismissReport(reportId);
 
-    @Test
-    void reportUser_cannotReportSelf() {
-        UUID userId = UUID.randomUUID();
-
-        assertThrows(IllegalArgumentException.class,
-                () -> reportService.reportUser(userId, userId, "trying to self report"));
-    }
-
-    @Test
-    void dismissReport_dismissesPendingReport() {
-        UUID reportId = UUID.randomUUID();
-        Report report = Report.create(UUID.randomUUID(), UUID.randomUUID(), "some reason");
-        when(reportRepository.findById(reportId)).thenReturn(Optional.of(report));
-        when(reportRepository.save(any(Report.class))).thenAnswer(inv -> inv.getArgument(0));
-
-        Report result = reportService.dismissReport(reportId);
-
-        assertEquals(ReportStatus.DISMISSED, result.getStatus());
+            assertEquals(ReportStatus.DISMISSED, result.getStatus());
+        }
     }
 }

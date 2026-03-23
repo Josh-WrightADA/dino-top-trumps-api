@@ -1,14 +1,8 @@
 package com.dinotoptrumps.auth.adapters.in;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.dinotoptrumps.support.IntegrationTestBase;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
-import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 
 import java.util.Base64;
@@ -21,17 +15,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@SpringBootTest
-@AutoConfigureMockMvc
-@ActiveProfiles("test")
-@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
-class AuthControllerIntegrationTest {
-
-    @Autowired
-    private MockMvc mockMvc;
-
-    @Autowired
-    private ObjectMapper objectMapper;
+class AuthControllerIntegrationTest extends IntegrationTestBase {
 
     @Test
     void register_validRequest_returns201() throws Exception {
@@ -66,7 +50,7 @@ class AuthControllerIntegrationTest {
 
     @Test
     void login_validCredentials_returnsToken() throws Exception {
-        registerUser("loginuser", "login@example.com", "password123");
+        registerAndLogin("loginuser", "login@example.com", "password123");
 
         mockMvc.perform(post("/api/v1/auth/login")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -80,7 +64,7 @@ class AuthControllerIntegrationTest {
 
     @Test
     void login_wrongPassword_returns401() throws Exception {
-        registerUser("wrongpw", "wrongpw@example.com", "password123");
+        registerAndLogin("wrongpw", "wrongpw@example.com", "password123");
 
         mockMvc.perform(post("/api/v1/auth/login")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -187,31 +171,6 @@ class AuthControllerIntegrationTest {
         mockMvc.perform(get("/api/v1/auth/players/00000000-0000-0000-0000-000000000000")
                         .header("Authorization", "Bearer " + token))
                 .andExpect(status().isUnauthorized());
-    }
-
-    private void registerUser(String username, String email, String password) throws Exception {
-        mockMvc.perform(post("/api/v1/auth/register")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(Map.of(
-                        "username", username,
-                        "email", email,
-                        "password", password
-                ))));
-    }
-
-    private String registerAndLogin(String username, String email, String password) throws Exception {
-        registerUser(username, email, password);
-
-        MvcResult result = mockMvc.perform(post("/api/v1/auth/login")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(Map.of(
-                                "username", username,
-                                "password", password
-                        ))))
-                .andReturn();
-
-        String body = result.getResponse().getContentAsString();
-        return objectMapper.readTree(body).get("accessToken").asText();
     }
 
     private String extractUserIdFromToken(String jwtToken) throws Exception {
