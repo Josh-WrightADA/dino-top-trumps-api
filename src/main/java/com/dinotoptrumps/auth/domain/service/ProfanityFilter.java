@@ -18,7 +18,7 @@ public class ProfanityFilter {
         String joined = blockedWords.stream()
                 .map(Pattern::quote)
                 .collect(Collectors.joining("|"));
-        this.pattern = Pattern.compile("\\b(" + joined + ")\\b", Pattern.CASE_INSENSITIVE);
+        this.pattern = Pattern.compile("(" + joined + ")", Pattern.CASE_INSENSITIVE);
     }
 
     public static ProfanityFilter fromClasspath(String resourcePath) {

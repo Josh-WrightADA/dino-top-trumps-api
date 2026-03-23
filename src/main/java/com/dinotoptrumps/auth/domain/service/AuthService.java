@@ -1,6 +1,7 @@
 package com.dinotoptrumps.auth.domain.service;
 
 import com.dinotoptrumps.auth.domain.exception.InvalidCredentialsException;
+import com.dinotoptrumps.auth.domain.exception.InvalidPasswordException;
 import com.dinotoptrumps.auth.domain.exception.UserAlreadyExistsException;
 import com.dinotoptrumps.auth.domain.model.User;
 import com.dinotoptrumps.auth.domain.model.UserProfile;
@@ -116,7 +117,7 @@ public class AuthService implements ForRegistering, ForAuthenticating, ForManagi
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new InvalidCredentialsException("User not found"));
         if (!passwordEncoder.matches(currentPassword, user.getPasswordHash())) {
-            throw new InvalidCredentialsException("Current password is incorrect");
+            throw new InvalidPasswordException("Current password is incorrect");
         }
         user.setPasswordHash(passwordEncoder.encode(newPassword));
         userRepository.save(user);
