@@ -24,6 +24,7 @@ public class Game {
     private Instant updatedAt;
 
     private static final int TURN_TIME_SECONDS = 30;
+    private static final int CEREMONY_BUFFER_SECONDS = 12;
 
     public Game(UUID id, UUID player1Id, UUID player2Id, GameStatus status,
                 UUID currentTurnPlayerId, List<UUID> player1Hand, List<UUID> player2Hand,
@@ -99,7 +100,7 @@ public class Game {
         this.drawPile = new ArrayList<>();
         this.status = GameStatus.IN_PROGRESS;
         this.currentTurnPlayerId = Math.random() < 0.5 ? player1Id : joiningPlayerId;
-        this.turnDeadline = Instant.now().plus(TURN_TIME_SECONDS, ChronoUnit.SECONDS);
+        this.turnDeadline = Instant.now().plus(TURN_TIME_SECONDS + CEREMONY_BUFFER_SECONDS, ChronoUnit.SECONDS);
         this.updatedAt = Instant.now();
     }
 
