@@ -94,14 +94,15 @@ public class Game {
      * Sets up the game when a second player joins: deals cards and starts play.
      */
     public void start(UUID joiningPlayerId, Hand[] dealtHands) {
+        Instant now = Instant.now();
         this.player2Id = joiningPlayerId;
         this.player1Hand = dealtHands[0].getCardIds();
         this.player2Hand = dealtHands[1].getCardIds();
         this.drawPile = new ArrayList<>();
         this.status = GameStatus.IN_PROGRESS;
         this.currentTurnPlayerId = Math.random() < 0.5 ? player1Id : joiningPlayerId;
-        this.turnDeadline = Instant.now().plus(TURN_TIME_SECONDS + CEREMONY_BUFFER_SECONDS, ChronoUnit.SECONDS);
-        this.updatedAt = Instant.now();
+        this.turnDeadline = now.plus(TURN_TIME_SECONDS + CEREMONY_BUFFER_SECONDS, ChronoUnit.SECONDS);
+        this.updatedAt = now;
     }
 
     /**
@@ -144,8 +145,9 @@ public class Game {
 
         this.player1Hand = p1Hand.getCardIds();
         this.player2Hand = p2Hand.getCardIds();
-        this.turnDeadline = Instant.now().plus(TURN_TIME_SECONDS, ChronoUnit.SECONDS);
-        this.updatedAt = Instant.now();
+        Instant now = Instant.now();
+        this.turnDeadline = now.plus(TURN_TIME_SECONDS, ChronoUnit.SECONDS);
+        this.updatedAt = now;
 
         return turnWinnerPlayerId;
     }

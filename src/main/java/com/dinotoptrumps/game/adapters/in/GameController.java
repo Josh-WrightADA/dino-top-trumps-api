@@ -149,6 +149,7 @@ public class GameController {
         return ResponseEntity.ok(history);
     }
 
+    // Returns 404 (not 403) for non-participants to prevent game ID enumeration
     private void validatePlayerInGame(Game game, UUID playerId) {
         if (!game.isPlayer1(playerId) && !playerId.equals(game.getPlayer2Id())) {
             throw new GameNotFoundException("Game not found: " + game.getId());
