@@ -1,6 +1,6 @@
 package com.dinotoptrumps.auth.domain.service;
 
-import com.dinotoptrumps.auth.domain.exception.InvalidCredentialsException;
+import com.dinotoptrumps.auth.domain.exception.UserNotFoundException;
 import com.dinotoptrumps.auth.domain.model.AccountStatus;
 import com.dinotoptrumps.auth.domain.model.Role;
 import com.dinotoptrumps.auth.domain.model.User;
@@ -79,7 +79,7 @@ class AdminServiceTest {
             UUID id = UUID.randomUUID();
             when(userRepository.findById(id)).thenReturn(Optional.empty());
 
-            assertThrows(InvalidCredentialsException.class, () -> adminService.banUser(id));
+            assertThrows(UserNotFoundException.class, () -> adminService.banUser(id));
         }
     }
 

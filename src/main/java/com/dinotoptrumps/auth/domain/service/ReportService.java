@@ -1,6 +1,6 @@
 package com.dinotoptrumps.auth.domain.service;
 
-import com.dinotoptrumps.auth.domain.exception.InvalidCredentialsException;
+import com.dinotoptrumps.auth.domain.exception.UserNotFoundException;
 import com.dinotoptrumps.auth.domain.model.Report;
 import com.dinotoptrumps.auth.ports.in.ForReportingUsers;
 import com.dinotoptrumps.auth.ports.out.ForPersistingReports;
@@ -29,7 +29,7 @@ public class ReportService implements ForReportingUsers {
             throw new IllegalArgumentException("Cannot report yourself");
         }
         userRepository.findById(reportedUserId)
-                .orElseThrow(() -> new InvalidCredentialsException("Reported user not found"));
+                .orElseThrow(() -> new UserNotFoundException("Reported user not found"));
 
         Report report = Report.create(reporterId, reportedUserId, reason);
         Report saved = reportRepository.save(report);
@@ -45,7 +45,7 @@ public class ReportService implements ForReportingUsers {
     @Override
     public Report dismissReport(UUID reportId) {
         Report report = reportRepository.findById(reportId)
-                .orElseThrow(() -> new InvalidCredentialsException("Report not found"));
+                .orElseThrow(() -> new UserNotFoundException("Report not found"));
         report.dismiss();
         Report saved = reportRepository.save(report);
         log.info("event_type=REPORT_DISMISSED reportId={}", reportId);

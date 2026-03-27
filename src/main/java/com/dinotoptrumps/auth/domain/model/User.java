@@ -43,6 +43,8 @@ public class User {
         this.updatedAt = updatedAt;
     }
 
+    private static final int DEFAULT_ELO_RATING = 1000;
+
     public static User create(String username, String email, String passwordHash) {
         Instant now = Instant.now();
         return new User(
@@ -56,7 +58,7 @@ public class User {
                 null,
                 Role.PLAYER,
                 AccountStatus.ACTIVE,
-                1000,
+                DEFAULT_ELO_RATING,
                 0,
                 0,
                 now,
@@ -102,7 +104,7 @@ public class User {
         return displayName;
     }
 
-    public void setDisplayName(String displayName) {
+    public void changeDisplayName(String displayName) {
         this.displayName = displayName;
         this.updatedAt = Instant.now();
     }
@@ -111,7 +113,7 @@ public class User {
         return avatarUrl;
     }
 
-    public void setAvatarUrl(String avatarUrl) {
+    public void changeAvatar(String avatarUrl) {
         this.avatarUrl = avatarUrl;
         this.updatedAt = Instant.now();
     }
@@ -120,7 +122,7 @@ public class User {
         return bio;
     }
 
-    public void setBio(String bio) {
+    public void updateBio(String bio) {
         this.bio = bio;
         this.updatedAt = Instant.now();
     }
@@ -129,7 +131,7 @@ public class User {
         return favouriteCardId;
     }
 
-    public void setFavouriteCardId(UUID favouriteCardId) {
+    public void chooseFavouriteCard(UUID favouriteCardId) {
         this.favouriteCardId = favouriteCardId;
         this.updatedAt = Instant.now();
     }
@@ -146,7 +148,7 @@ public class User {
         return eloRating;
     }
 
-    public void setEloRating(int eloRating) {
+    public void adjustEloRating(int eloRating) {
         this.eloRating = eloRating;
         this.updatedAt = Instant.now();
     }
@@ -177,7 +179,7 @@ public class User {
         return updatedAt;
     }
 
-    public void setPasswordHash(String passwordHash) {
+    public void resetPasswordTo(String passwordHash) {
         this.passwordHash = passwordHash;
         this.updatedAt = Instant.now();
     }

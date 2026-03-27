@@ -3,6 +3,7 @@ package com.dinotoptrumps.shared.exception;
 import com.dinotoptrumps.auth.domain.exception.InvalidCredentialsException;
 import com.dinotoptrumps.auth.domain.exception.InvalidPasswordException;
 import com.dinotoptrumps.auth.domain.exception.UserAlreadyExistsException;
+import com.dinotoptrumps.auth.domain.exception.UserNotFoundException;
 import com.dinotoptrumps.game.domain.exception.GameNotFoundException;
 import com.dinotoptrumps.game.domain.exception.InvalidGameStateException;
 import com.dinotoptrumps.game.domain.exception.InvalidStatException;
@@ -37,6 +38,11 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(InvalidCredentialsException.class)
     public ProblemDetail handleInvalidCredentials(InvalidCredentialsException ex) {
         return buildProblem(HttpStatus.UNAUTHORIZED, "Invalid Credentials", ex.getMessage());
+    }
+
+    @ExceptionHandler(UserNotFoundException.class)
+    public ProblemDetail handleUserNotFound(UserNotFoundException ex) {
+        return buildProblem(HttpStatus.NOT_FOUND, "Not Found", ex.getMessage());
     }
 
     @ExceptionHandler(InvalidPasswordException.class)
