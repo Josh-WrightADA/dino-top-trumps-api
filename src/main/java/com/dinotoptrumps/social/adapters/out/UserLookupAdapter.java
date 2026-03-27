@@ -4,6 +4,7 @@ import com.dinotoptrumps.auth.ports.out.ForPersistingUsers;
 import com.dinotoptrumps.social.ports.out.ForLookingUpUsers;
 import org.springframework.stereotype.Component;
 
+import java.util.Optional;
 import java.util.UUID;
 
 // This adapter bridges the social→auth bounded context boundary.
@@ -23,5 +24,11 @@ public class UserLookupAdapter implements ForLookingUpUsers {
         return userRepo.findById(userId)
                 .map(user -> !user.isBanned())
                 .orElse(false);
+    }
+
+    @Override
+    public Optional<String> findDisplayNameById(UUID userId) {
+        return userRepo.findById(userId)
+                .map(user -> user.getDisplayName());
     }
 }

@@ -1,9 +1,9 @@
 package com.dinotoptrumps.social.infrastructure.spring;
 
-import com.dinotoptrumps.game.ports.in.ForJoiningGame;
 import com.dinotoptrumps.social.domain.service.FriendshipService;
 import com.dinotoptrumps.social.domain.service.GameInviteService;
 import com.dinotoptrumps.social.ports.out.ForCheckingGameStatus;
+import com.dinotoptrumps.social.ports.out.ForJoiningGameFromInvite;
 import com.dinotoptrumps.social.ports.out.ForLookingUpUsers;
 import com.dinotoptrumps.social.ports.out.ForPersistingFriendships;
 import com.dinotoptrumps.social.ports.out.ForPersistingGameInvites;
@@ -23,7 +23,7 @@ public class SocialConfig {
     public GameInviteService gameInviteService(ForPersistingGameInvites inviteRepo,
                                                ForPersistingFriendships friendshipRepo,
                                                ForCheckingGameStatus gameStatusChecker,
-                                               ForJoiningGame forJoiningGame) {
-        return new GameInviteService(inviteRepo, friendshipRepo, gameStatusChecker, forJoiningGame);
+                                               ForJoiningGameFromInvite gameJoiner) {
+        return new GameInviteService(inviteRepo, friendshipRepo, gameStatusChecker, gameJoiner);
     }
 }

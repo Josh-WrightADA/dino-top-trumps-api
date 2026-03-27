@@ -1,12 +1,12 @@
 package com.dinotoptrumps.social.domain.service;
 
-import com.dinotoptrumps.game.ports.in.ForJoiningGame;
 import com.dinotoptrumps.social.domain.exception.GameInviteExpiredException;
 import com.dinotoptrumps.social.domain.exception.NotFriendsException;
 import com.dinotoptrumps.social.domain.model.Friendship;
 import com.dinotoptrumps.social.domain.model.GameInvite;
 import com.dinotoptrumps.social.domain.model.GameInviteStatus;
 import com.dinotoptrumps.social.ports.out.ForCheckingGameStatus;
+import com.dinotoptrumps.social.ports.out.ForJoiningGameFromInvite;
 import com.dinotoptrumps.social.ports.out.ForPersistingFriendships;
 import com.dinotoptrumps.social.ports.out.ForPersistingGameInvites;
 import org.junit.jupiter.api.BeforeEach;
@@ -29,7 +29,7 @@ class GameInviteServiceTest {
     private ForPersistingGameInvites inviteRepo;
     private ForPersistingFriendships friendshipRepo;
     private ForCheckingGameStatus gameStatusChecker;
-    private ForJoiningGame forJoiningGame;
+    private ForJoiningGameFromInvite gameJoiner;
     private GameInviteService service;
 
     private final UUID hostId = UUID.randomUUID();
@@ -41,8 +41,8 @@ class GameInviteServiceTest {
         inviteRepo = mock(ForPersistingGameInvites.class);
         friendshipRepo = mock(ForPersistingFriendships.class);
         gameStatusChecker = mock(ForCheckingGameStatus.class);
-        forJoiningGame = mock(ForJoiningGame.class);
-        service = new GameInviteService(inviteRepo, friendshipRepo, gameStatusChecker, forJoiningGame);
+        gameJoiner = mock(ForJoiningGameFromInvite.class);
+        service = new GameInviteService(inviteRepo, friendshipRepo, gameStatusChecker, gameJoiner);
 
         when(inviteRepo.save(any(GameInvite.class))).thenAnswer(inv -> inv.getArgument(0));
     }
@@ -108,12 +108,11 @@ class GameInviteServiceTest {
     void acceptInvite_joinsGame() {
         GameInvite invite = pendingInvite();
         when(inviteRepo.findById(invite.getId())).thenReturn(Optional.of(invite));
-        when(forJoiningGame.joinGame(gameId, guestId)).thenReturn(null);
 
         GameInvite result = service.acceptInvite(invite.getId(), guestId);
 
         assertEquals(GameInviteStatus.ACCEPTED, result.getStatus());
-        verify(forJoiningGame).joinGame(gameId, guestId);
+        verify(gameJoiner).joinGame(gameId, guestId);
     }
 
     @Test

@@ -13,5 +13,4 @@ public interface ForPersistingFriendships {
     Optional<Friendship> findAcceptedBetween(UUID userA, UUID userB);
     List<Friendship> findAcceptedByUserId(UUID userId);
     List<Friendship> findPendingForAddressee(UUID addresseeId);
-    void deleteById(UUID id);
 }
