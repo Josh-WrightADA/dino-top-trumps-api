@@ -113,6 +113,7 @@ public class GameController {
         return ResponseEntity.ok(games);
     }
 
+    @Transactional
     @PostMapping("/{gameId}/forfeit")
     public ResponseEntity<GameStateResponse> forfeitGame(@PathVariable UUID gameId,
                                                          Authentication authentication) {

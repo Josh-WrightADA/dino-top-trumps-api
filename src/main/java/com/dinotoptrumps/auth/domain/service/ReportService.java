@@ -1,5 +1,6 @@
 package com.dinotoptrumps.auth.domain.service;
 
+import com.dinotoptrumps.auth.domain.exception.ReportNotFoundException;
 import com.dinotoptrumps.auth.domain.exception.UserNotFoundException;
 import com.dinotoptrumps.auth.domain.model.Report;
 import com.dinotoptrumps.auth.ports.in.ForReportingUsers;
@@ -45,7 +46,7 @@ public class ReportService implements ForReportingUsers {
     @Override
     public Report dismissReport(UUID reportId) {
         Report report = reportRepository.findById(reportId)
-                .orElseThrow(() -> new UserNotFoundException("Report not found"));
+                .orElseThrow(() -> new ReportNotFoundException("Report not found"));
         report.dismiss();
         Report saved = reportRepository.save(report);
         log.info("event_type=REPORT_DISMISSED reportId={}", reportId);

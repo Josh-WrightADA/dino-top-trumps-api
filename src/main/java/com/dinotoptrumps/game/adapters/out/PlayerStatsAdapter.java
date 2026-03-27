@@ -4,7 +4,9 @@ import com.dinotoptrumps.auth.domain.model.User;
 import com.dinotoptrumps.auth.ports.out.ForPersistingUsers;
 import com.dinotoptrumps.game.domain.service.EloService;
 import com.dinotoptrumps.game.ports.out.ForUpdatingPlayerStats;
+import com.dinotoptrumps.shared.exception.DataIntegrityException;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.UUID;
 
@@ -22,12 +24,13 @@ public class PlayerStatsAdapter implements ForUpdatingPlayerStats {
         this.eloService = eloService;
     }
 
+    @Transactional
     @Override
     public void updateStatsAfterGame(UUID winnerId, UUID loserId) {
         User winner = userRepository.findById(winnerId)
-                .orElseThrow(() -> new IllegalStateException("Winner not found: " + winnerId));
+                .orElseThrow(() -> new DataIntegrityException("Winner not found: " + winnerId));
         User loser = userRepository.findById(loserId)
-                .orElseThrow(() -> new IllegalStateException("Loser not found: " + loserId));
+                .orElseThrow(() -> new DataIntegrityException("Loser not found: " + loserId));
 
         int[] newRatings = eloService.updateRatings(
                 winner.getEloRating(), loser.getEloRating(),

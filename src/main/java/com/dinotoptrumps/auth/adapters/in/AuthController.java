@@ -12,6 +12,7 @@ import com.dinotoptrumps.auth.adapters.in.dto.ReportRequest;
 import com.dinotoptrumps.auth.adapters.in.dto.ReportResponse;
 import com.dinotoptrumps.auth.adapters.in.dto.ResetPasswordRequest;
 import com.dinotoptrumps.auth.adapters.in.dto.UpdateProfileRequest;
+import com.dinotoptrumps.auth.domain.exception.MediaUploadException;
 import com.dinotoptrumps.auth.domain.model.Report;
 import com.dinotoptrumps.auth.domain.model.User;
 import com.dinotoptrumps.auth.domain.model.UserProfile;
@@ -35,8 +36,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
-import org.springframework.web.server.ResponseStatusException;
 
 import java.io.IOException;
 import java.util.Map;
@@ -117,18 +118,17 @@ public class AuthController {
 
         String contentType = file.getContentType();
         if (contentType == null || !ALLOWED_CONTENT_TYPES.contains(contentType)) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
-                    "Invalid file type. Allowed: jpeg, png, webp");
+            throw new IllegalArgumentException("Invalid file type. Allowed: jpeg, png, webp");
         }
         if (file.getSize() > MAX_FILE_SIZE_BYTES) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "File must be 2MB or smaller");
+            throw new IllegalArgumentException("File must be 2MB or smaller");
         }
 
         byte[] imageData;
         try {
             imageData = file.getBytes();
         } catch (IOException e) {
-            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to read uploaded file");
+            throw new MediaUploadException("Failed to read uploaded file", e);
         }
 
         String avatarUrl = forStoringMedia.uploadAvatar(userId, imageData, contentType);
@@ -144,7 +144,7 @@ public class AuthController {
         UUID userId = (UUID) authentication.getPrincipal();
         String imageUrl = body.get("imageUrl");
         if (imageUrl == null || imageUrl.isBlank()) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "imageUrl is required");
+            throw new IllegalArgumentException("imageUrl is required");
         }
         User updated = forManagingProfile.updateAvatar(userId, imageUrl);
         UserProfile profile = UserProfile.fromUser(updated);
@@ -159,6 +159,7 @@ public class AuthController {
         return ResponseEntity.ok(new MessageResponse("Password changed successfully"));
     }
 
+    @Transactional
     @DeleteMapping("/me")
     public ResponseEntity<Void> deleteAccount(Authentication authentication,
                                               @Valid @RequestBody DeleteAccountRequest request) {
@@ -188,6 +189,7 @@ public class AuthController {
         return ResponseEntity.ok(new MessageResponse("If that email exists, a reset link has been sent"));
     }
 
+    @Transactional
     @PostMapping("/reset-password")
     public ResponseEntity<MessageResponse> resetPassword(@Valid @RequestBody ResetPasswordRequest request) {
         forResettingPassword.resetPassword(request.token(), request.newPassword());
