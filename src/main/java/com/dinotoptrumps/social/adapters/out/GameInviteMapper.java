@@ -8,6 +8,10 @@ public class GameInviteMapper {
     public static GameInviteJpaEntity toEntity(GameInvite invite) {
         GameInviteJpaEntity entity = new GameInviteJpaEntity();
         entity.setId(invite.getId());
+        return updateEntity(entity, invite);
+    }
+
+    public static GameInviteJpaEntity updateEntity(GameInviteJpaEntity entity, GameInvite invite) {
         entity.setGameId(invite.getGameId());
         entity.setInviterId(invite.getInviterId());
         entity.setInviteeId(invite.getInviteeId());

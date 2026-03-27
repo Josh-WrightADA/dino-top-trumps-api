@@ -19,7 +19,9 @@ public class UserPersistenceAdapter implements ForPersistingUsers {
 
     @Override
     public User save(User user) {
-        UserJpaEntity entity = UserMapper.toEntity(user);
+        UserJpaEntity entity = userJpaRepository.findById(user.getId())
+                .map(existing -> UserMapper.updateEntity(existing, user))
+                .orElseGet(() -> UserMapper.toEntity(user));
         UserJpaEntity saved = userJpaRepository.save(entity);
         return UserMapper.toDomain(saved);
     }

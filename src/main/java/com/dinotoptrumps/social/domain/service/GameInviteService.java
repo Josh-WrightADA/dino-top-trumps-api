@@ -1,5 +1,6 @@
 package com.dinotoptrumps.social.domain.service;
 
+import com.dinotoptrumps.shared.exception.NotAuthorisedException;
 import com.dinotoptrumps.social.domain.exception.GameInviteExpiredException;
 import com.dinotoptrumps.social.domain.exception.GameInviteNotFoundException;
 import com.dinotoptrumps.social.domain.exception.NotFriendsException;
@@ -66,7 +67,7 @@ public class GameInviteService implements ForManagingGameInvites {
                 .orElseThrow(() -> new GameInviteNotFoundException("Game invite not found: " + inviteId));
 
         if (!invite.isAddressedTo(acceptingUserId)) {
-            throw new IllegalArgumentException("Not authorised to accept this invite");
+            throw new NotAuthorisedException("Not authorised to accept this invite");
         }
 
         if (invite.isExpired()) {
@@ -86,7 +87,7 @@ public class GameInviteService implements ForManagingGameInvites {
                 .orElseThrow(() -> new GameInviteNotFoundException("Game invite not found: " + inviteId));
 
         if (!invite.isAddressedTo(decliningUserId)) {
-            throw new IllegalArgumentException("Not authorised to decline this invite");
+            throw new NotAuthorisedException("Not authorised to decline this invite");
         }
 
         invite.decline();

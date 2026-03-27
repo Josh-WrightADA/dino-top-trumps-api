@@ -2,6 +2,8 @@ package com.dinotoptrumps.shared.exception;
 
 import com.dinotoptrumps.auth.domain.exception.InvalidCredentialsException;
 import com.dinotoptrumps.auth.domain.exception.InvalidPasswordException;
+import com.dinotoptrumps.auth.domain.exception.MediaUploadException;
+import com.dinotoptrumps.auth.domain.exception.ReportNotFoundException;
 import com.dinotoptrumps.auth.domain.exception.UserAlreadyExistsException;
 import com.dinotoptrumps.auth.domain.exception.UserNotFoundException;
 import com.dinotoptrumps.game.domain.exception.GameNotFoundException;
@@ -114,6 +116,28 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(GameInviteExpiredException.class)
     public ProblemDetail handleGameInviteExpired(GameInviteExpiredException ex) {
         return buildProblem(HttpStatus.GONE, "Game Invite Expired", ex.getMessage());
+    }
+
+    @ExceptionHandler(MediaUploadException.class)
+    public ProblemDetail handleMediaUpload(MediaUploadException ex) {
+        log.error("Media upload failed", ex);
+        return buildProblem(HttpStatus.INTERNAL_SERVER_ERROR, "Media Upload Failed", ex.getMessage());
+    }
+
+    @ExceptionHandler(ReportNotFoundException.class)
+    public ProblemDetail handleReportNotFound(ReportNotFoundException ex) {
+        return buildProblem(HttpStatus.NOT_FOUND, "Not Found", ex.getMessage());
+    }
+
+    @ExceptionHandler(NotAuthorisedException.class)
+    public ProblemDetail handleNotAuthorised(NotAuthorisedException ex) {
+        return buildProblem(HttpStatus.FORBIDDEN, "Forbidden", ex.getMessage());
+    }
+
+    @ExceptionHandler(DataIntegrityException.class)
+    public ProblemDetail handleDataIntegrity(DataIntegrityException ex) {
+        log.error("Data integrity error", ex);
+        return buildProblem(HttpStatus.INTERNAL_SERVER_ERROR, "Data Integrity Error", ex.getMessage());
     }
 
     @ExceptionHandler(ObjectOptimisticLockingFailureException.class)

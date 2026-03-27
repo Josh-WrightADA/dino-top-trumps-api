@@ -6,6 +6,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 @Component
 public class GameCleanupScheduler {
@@ -21,6 +22,7 @@ public class GameCleanupScheduler {
         this.forManagingGameInvites = forManagingGameInvites;
     }
 
+    @Transactional
     @Scheduled(fixedRate = 600_000)
     public void cleanupStaleGames() {
         try {
@@ -33,6 +35,7 @@ public class GameCleanupScheduler {
         }
     }
 
+    @Transactional
     @Scheduled(fixedRate = 60_000)
     public void cleanupExpiredInvites() {
         try {

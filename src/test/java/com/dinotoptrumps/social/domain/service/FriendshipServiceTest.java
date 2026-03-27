@@ -1,5 +1,6 @@
 package com.dinotoptrumps.social.domain.service;
 
+import com.dinotoptrumps.shared.exception.NotAuthorisedException;
 import com.dinotoptrumps.social.domain.exception.CannotFriendYourselfException;
 import com.dinotoptrumps.social.domain.exception.FriendRequestAlreadyExistsException;
 import com.dinotoptrumps.social.domain.model.Friendship;
@@ -113,7 +114,7 @@ class FriendshipServiceTest {
             Friendship pending = Friendship.create(requesterId, addresseeId);
             when(friendshipRepo.findById(pending.getId())).thenReturn(Optional.of(pending));
 
-            assertThrows(IllegalArgumentException.class,
+            assertThrows(NotAuthorisedException.class,
                     () -> service.acceptFriendRequest(pending.getId(), outsider));
         }
     }

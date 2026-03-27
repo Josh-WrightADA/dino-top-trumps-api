@@ -21,7 +21,9 @@ public class GameInvitePersistenceAdapter implements ForPersistingGameInvites {
 
     @Override
     public GameInvite save(GameInvite invite) {
-        GameInviteJpaEntity entity = GameInviteMapper.toEntity(invite);
+        GameInviteJpaEntity entity = gameInviteJpaRepository.findById(invite.getId())
+                .map(existing -> GameInviteMapper.updateEntity(existing, invite))
+                .orElseGet(() -> GameInviteMapper.toEntity(invite));
         GameInviteJpaEntity saved = gameInviteJpaRepository.save(entity);
         return GameInviteMapper.toDomain(saved);
     }

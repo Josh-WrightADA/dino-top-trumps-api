@@ -1,5 +1,6 @@
 package com.dinotoptrumps.social.domain.service;
 
+import com.dinotoptrumps.shared.exception.NotAuthorisedException;
 import com.dinotoptrumps.social.domain.exception.CannotFriendYourselfException;
 import com.dinotoptrumps.social.domain.exception.FriendRequestAlreadyExistsException;
 import com.dinotoptrumps.social.domain.exception.FriendshipNotFoundException;
@@ -64,7 +65,7 @@ public class FriendshipService implements ForManagingFriendships {
                 .orElseThrow(() -> new FriendshipNotFoundException("Friendship not found: " + friendshipId));
 
         if (!friendship.isAddressedTo(acceptingUserId)) {
-            throw new IllegalArgumentException("Not authorised to accept this request");
+            throw new NotAuthorisedException("Not authorised to accept this request");
         }
 
         friendship.accept();
@@ -80,7 +81,7 @@ public class FriendshipService implements ForManagingFriendships {
                 .orElseThrow(() -> new FriendshipNotFoundException("Friendship not found: " + friendshipId));
 
         if (!friendship.isAddressedTo(decliningUserId)) {
-            throw new IllegalArgumentException("Not authorised to decline this request");
+            throw new NotAuthorisedException("Not authorised to decline this request");
         }
 
         friendship.decline();
@@ -96,7 +97,7 @@ public class FriendshipService implements ForManagingFriendships {
                 .orElseThrow(() -> new FriendshipNotFoundException("Friendship not found: " + friendshipId));
 
         if (!friendship.isParticipant(removingUserId)) {
-            throw new IllegalArgumentException("Not a participant in this friendship");
+            throw new NotAuthorisedException("Not a participant in this friendship");
         }
 
         friendship.remove();

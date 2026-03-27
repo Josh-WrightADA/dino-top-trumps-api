@@ -9,6 +9,10 @@ public class UserMapper {
     public static UserJpaEntity toEntity(User user) {
         UserJpaEntity entity = new UserJpaEntity();
         entity.setId(user.getId());
+        return updateEntity(entity, user);
+    }
+
+    public static UserJpaEntity updateEntity(UserJpaEntity entity, User user) {
         entity.setUsername(user.getUsername());
         entity.setEmail(user.getEmail());
         entity.setPasswordHash(user.getPasswordHash());

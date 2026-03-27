@@ -2,6 +2,7 @@ package com.dinotoptrumps.auth.adapters.out.media;
 
 import com.cloudinary.Cloudinary;
 import com.cloudinary.utils.ObjectUtils;
+import com.dinotoptrumps.auth.domain.exception.MediaUploadException;
 import com.dinotoptrumps.auth.ports.out.ForStoringMedia;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -56,7 +57,7 @@ public class CloudinaryAdapter implements ForStoringMedia {
             return secureUrl;
         } catch (IOException e) {
             log.error("Failed to upload avatar for user {}: {}", userId, e.getMessage());
-            throw new RuntimeException("Avatar upload failed", e);
+            throw new MediaUploadException("Avatar upload failed", e);
         }
     }
 }
