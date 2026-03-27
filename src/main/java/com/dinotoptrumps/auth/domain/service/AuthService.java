@@ -3,6 +3,7 @@ package com.dinotoptrumps.auth.domain.service;
 import com.dinotoptrumps.auth.domain.exception.InvalidCredentialsException;
 import com.dinotoptrumps.auth.domain.exception.InvalidPasswordException;
 import com.dinotoptrumps.auth.domain.exception.UserAlreadyExistsException;
+import com.dinotoptrumps.auth.domain.exception.UserNotFoundException;
 import com.dinotoptrumps.auth.domain.model.User;
 import com.dinotoptrumps.auth.domain.model.UserProfile;
 import com.dinotoptrumps.auth.ports.in.ForAuthenticating;
@@ -84,10 +85,10 @@ public class AuthService implements ForRegistering, ForAuthenticating, ForManagi
 
         User user = getUserOrThrow(userId);
         if (displayName != null) {
-            user.setDisplayName(displayName);
+            user.changeDisplayName(displayName);
         }
-        user.setBio(bio);
-        user.setFavouriteCardId(favouriteCardId);
+        user.updateBio(bio);
+        user.chooseFavouriteCard(favouriteCardId);
         log.info("event_type=PROFILE_UPDATED userId={}", userId);
         return userRepository.save(user);
     }
@@ -95,7 +96,7 @@ public class AuthService implements ForRegistering, ForAuthenticating, ForManagi
     @Override
     public User updateAvatar(UUID userId, String avatarUrl) {
         User user = getUserOrThrow(userId);
-        user.setAvatarUrl(avatarUrl);
+        user.changeAvatar(avatarUrl);
         User saved = userRepository.save(user);
         log.info("event_type=AVATAR_CHANGED userId={}", userId);
         return saved;
@@ -110,7 +111,7 @@ public class AuthService implements ForRegistering, ForAuthenticating, ForManagi
         if (passwordEncoder.matches(newPassword, user.getPasswordHash())) {
             throw new InvalidPasswordException("New password must be different from current password");
         }
-        user.setPasswordHash(passwordEncoder.encode(newPassword));
+        user.resetPasswordTo(passwordEncoder.encode(newPassword));
         userRepository.save(user);
         log.info("event_type=PASSWORD_CHANGED userId={}", userId);
     }
@@ -133,6 +134,6 @@ public class AuthService implements ForRegistering, ForAuthenticating, ForManagi
 
     private User getUserOrThrow(UUID userId) {
         return userRepository.findById(userId)
-                .orElseThrow(() -> new InvalidCredentialsException("User not found"));
+                .orElseThrow(() -> new UserNotFoundException("User not found"));
     }
 }

@@ -65,7 +65,7 @@ public class PasswordResetService implements ForResettingPassword {
                 .orElseThrow(() -> new IllegalStateException("User not found for reset token"));
 
         String hashedPassword = passwordEncoder.encode(newRawPassword);
-        user.setPasswordHash(hashedPassword);
+        user.resetPasswordTo(hashedPassword);
         userRepository.save(user);
 
         resetToken.markUsed();

@@ -33,11 +33,11 @@ public class PlayerStatsAdapter implements ForUpdatingPlayerStats {
                 winner.getEloRating(), loser.getEloRating(),
                 winner.getGamesPlayed(), loser.getGamesPlayed());
 
-        winner.setEloRating(newRatings[0]);
+        winner.adjustEloRating(newRatings[0]);
         winner.incrementGamesPlayed();
         winner.incrementGamesWon();
 
-        loser.setEloRating(newRatings[1]);
+        loser.adjustEloRating(newRatings[1]);
         loser.incrementGamesPlayed();
 
         userRepository.save(winner);

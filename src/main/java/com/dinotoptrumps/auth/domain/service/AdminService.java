@@ -1,6 +1,6 @@
 package com.dinotoptrumps.auth.domain.service;
 
-import com.dinotoptrumps.auth.domain.exception.InvalidCredentialsException;
+import com.dinotoptrumps.auth.domain.exception.UserNotFoundException;
 import com.dinotoptrumps.auth.domain.model.User;
 import com.dinotoptrumps.auth.ports.in.ForAdminOperations;
 import com.dinotoptrumps.auth.ports.out.ForPersistingUsers;
@@ -28,7 +28,7 @@ public class AdminService implements ForAdminOperations {
     @Override
     public User banUser(UUID userId) {
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new InvalidCredentialsException("User not found"));
+                .orElseThrow(() -> new UserNotFoundException("User not found"));
         if (user.isAdmin()) {
             throw new IllegalStateException("Cannot ban an admin user");
         }
@@ -41,7 +41,7 @@ public class AdminService implements ForAdminOperations {
     @Override
     public User unbanUser(UUID userId) {
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new InvalidCredentialsException("User not found"));
+                .orElseThrow(() -> new UserNotFoundException("User not found"));
         user.unban();
         User saved = userRepository.save(user);
         log.info("event_type=USER_UNBANNED userId={}", userId);

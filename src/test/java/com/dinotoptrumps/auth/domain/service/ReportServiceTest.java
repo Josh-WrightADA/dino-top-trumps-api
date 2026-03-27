@@ -1,6 +1,6 @@
 package com.dinotoptrumps.auth.domain.service;
 
-import com.dinotoptrumps.auth.domain.exception.InvalidCredentialsException;
+
 import com.dinotoptrumps.auth.domain.model.AccountStatus;
 import com.dinotoptrumps.auth.domain.model.Report;
 import com.dinotoptrumps.auth.domain.model.ReportStatus;

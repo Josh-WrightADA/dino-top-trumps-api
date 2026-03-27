@@ -178,12 +178,12 @@ class AuthControllerIntegrationTest extends IntegrationTestBase {
     }
 
     @Test
-    void getPublicProfile_nonExistentUser_returns401() throws Exception {
+    void getPublicProfile_nonExistentUser_returns404() throws Exception {
         String token = registerAndLogin("requester2", "requester2@example.com", "password123");
 
         mockMvc.perform(get("/api/v1/auth/players/00000000-0000-0000-0000-000000000000")
                         .header("Authorization", "Bearer " + token))
-                .andExpect(status().isUnauthorized());
+                .andExpect(status().isNotFound());
     }
 
     private String extractUserIdFromToken(String jwtToken) throws Exception {
