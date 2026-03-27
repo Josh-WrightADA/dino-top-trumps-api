@@ -18,6 +18,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
 import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -107,6 +108,12 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(GameInviteExpiredException.class)
     public ProblemDetail handleGameInviteExpired(GameInviteExpiredException ex) {
         return buildProblem(HttpStatus.GONE, "Game Invite Expired", ex.getMessage());
+    }
+
+    @ExceptionHandler(ObjectOptimisticLockingFailureException.class)
+    public ProblemDetail handleOptimisticLock(ObjectOptimisticLockingFailureException ex) {
+        return buildProblem(HttpStatus.CONFLICT, "Conflict",
+                "Game state was modified by another request. Please retry.");
     }
 
     @ExceptionHandler(IllegalArgumentException.class)

@@ -22,7 +22,9 @@ public class GamePersistenceAdapter implements ForPersistingGames {
 
     @Override
     public Game save(Game game) {
-        GameJpaEntity entity = GameMapper.toEntity(game);
+        GameJpaEntity entity = gameJpaRepository.findById(game.getId())
+                .map(existing -> GameMapper.updateEntity(existing, game))
+                .orElseGet(() -> GameMapper.toEntity(game));
         GameJpaEntity saved = gameJpaRepository.save(entity);
         return GameMapper.toDomain(saved);
     }

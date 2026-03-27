@@ -15,6 +15,10 @@ public class GameMapper {
     public static GameJpaEntity toEntity(Game game) {
         GameJpaEntity entity = new GameJpaEntity();
         entity.setId(game.getId());
+        return updateEntity(entity, game);
+    }
+
+    public static GameJpaEntity updateEntity(GameJpaEntity entity, Game game) {
         entity.setPlayer1Id(game.getPlayer1Id());
         entity.setPlayer2Id(game.getPlayer2Id());
         entity.setStatus(game.getStatus().name());
