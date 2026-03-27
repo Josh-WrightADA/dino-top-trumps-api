@@ -1,12 +1,12 @@
 package com.dinotoptrumps.social.domain.service;
 
-import com.dinotoptrumps.game.ports.in.ForJoiningGame;
 import com.dinotoptrumps.social.domain.exception.GameInviteExpiredException;
 import com.dinotoptrumps.social.domain.exception.GameInviteNotFoundException;
 import com.dinotoptrumps.social.domain.exception.NotFriendsException;
 import com.dinotoptrumps.social.domain.model.GameInvite;
 import com.dinotoptrumps.social.ports.in.ForManagingGameInvites;
 import com.dinotoptrumps.social.ports.out.ForCheckingGameStatus;
+import com.dinotoptrumps.social.ports.out.ForJoiningGameFromInvite;
 import com.dinotoptrumps.social.ports.out.ForPersistingFriendships;
 import com.dinotoptrumps.social.ports.out.ForPersistingGameInvites;
 import org.slf4j.Logger;
@@ -23,16 +23,16 @@ public class GameInviteService implements ForManagingGameInvites {
     private final ForPersistingGameInvites inviteRepo;
     private final ForPersistingFriendships friendshipRepo;
     private final ForCheckingGameStatus gameStatusChecker;
-    private final ForJoiningGame forJoiningGame;
+    private final ForJoiningGameFromInvite gameJoiner;
 
     public GameInviteService(ForPersistingGameInvites inviteRepo,
                              ForPersistingFriendships friendshipRepo,
                              ForCheckingGameStatus gameStatusChecker,
-                             ForJoiningGame forJoiningGame) {
+                             ForJoiningGameFromInvite gameJoiner) {
         this.inviteRepo = inviteRepo;
         this.friendshipRepo = friendshipRepo;
         this.gameStatusChecker = gameStatusChecker;
-        this.forJoiningGame = forJoiningGame;
+        this.gameJoiner = gameJoiner;
     }
 
     @Override
@@ -74,7 +74,7 @@ public class GameInviteService implements ForManagingGameInvites {
         }
 
         invite.accept();
-        forJoiningGame.joinGame(invite.getGameId(), acceptingUserId);
+        gameJoiner.joinGame(invite.getGameId(), acceptingUserId);
         GameInvite saved = inviteRepo.save(invite);
         log.info("event_type=GAME_INVITE_ACCEPTED inviteId={} acceptingUserId={}", inviteId, acceptingUserId);
         return saved;

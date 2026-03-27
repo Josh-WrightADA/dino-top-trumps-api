@@ -57,9 +57,4 @@ public class FriendshipPersistenceAdapter implements ForPersistingFriendships {
                 .map(FriendshipMapper::toDomain)
                 .toList();
     }
-
-    @Override
-    public void deleteById(UUID id) {
-        friendshipJpaRepository.deleteById(id);
-    }
 }
