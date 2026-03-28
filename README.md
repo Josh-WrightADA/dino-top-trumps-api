@@ -685,3 +685,45 @@ These are trade-offs I'm aware of, not oversights, and in each case I've noted w
 | **Deletes** | Hard deletes with FK cascades and SET NULL | Soft deletes with `deleted_at` for full audit trail |
 | **Resilience** | No circuit breakers on external service calls (SendGrid, Cloudinary). If Cloudinary is down, avatar upload fails with a 500 | resilience4j circuit breaker pattern with fallback responses |
 | **Redundancy** | Single instance on Render free tier. No horizontal scaling or failover | Multiple instances behind a load balancer. The architecture supports this since JWT is stateless and there are no server-side sessions |
+
+---
+
+## Use of Generative AI
+
+I used generative AI tools throughout this project as development aids. All output was reviewed, tested, and integrated by me. I understand every piece of code in both repositories and can explain any implementation decision.
+
+### Image Generation
+
+All visual assets were created using Google Gemini with a custom Nano Banana Gem:
+- 36 dinosaur card images (572x1024, consistent art style across the full deck)
+- 5 rank tier badge icons
+- 11 dinosaur profile portraits
+- Brand assets (claw mark logo, feature panel icons)
+
+The generation process required significant iteration. I dealt with style drift between sessions, context poisoning where the model would forget the established style, and scale accuracy issues for different dinosaur species. Each image was individually reviewed and several were regenerated multiple times.
+
+### Development Assistance
+
+I used AI-assisted development tools for the following areas. In each case I directed what needed to be done, reviewed the output, ran tests, and made the final decisions:
+
+- **Research and learning:** Investigating industry patterns for hexagonal architecture, BEM methodology, ELO rating systems, RFC 7807 error standards, JWT authentication flows, and competitive game design patterns
+- **Scaffolding and boilerplate:** Initial project structure, repetitive adapter/mapper patterns, and configuration files where the pattern was already established elsewhere in the codebase
+- **Educational guidance:** The tool was configured in a learning mode that created structured TODOs for me to implement, rather than generating complete solutions. This guided me through concepts like port/adapter wiring, domain model behaviour methods, and test architecture
+- **Code quality auditing:** Systematic reviews against DRY, KISS, SOLID, and BEM principles. This identified issues like duplicated password toggle patterns, cross-component CSS coupling, and missing transaction boundaries that I then fixed
+- **Refactoring suggestions:** Identifying extraction candidates (PasswordField, Avatar, CardStats, PlayerStatsCard, shared utilities) and architectural improvements (GameBoard decomposition, Game.css split, AdminPage tab extraction)
+- **Test coverage analysis:** Identifying untested critical paths (auth module had zero frontend tests) and reviewing test quality across both repositories
+- **Debugging support:** Investigating FK cascade failures during user testing, card image scaling issues, CSS specificity conflicts from global selectors, and race conditions in concurrent game state updates
+- **Documentation structure:** README organisation, Mermaid diagram design, and ensuring rubric criteria were naturally addressed in the documentation
+- **Deployment and infrastructure:** Render configuration, Docker setup, CI/CD pipeline design, health check configuration, and environment variable management
+- **CSS design system:** Token definitions, utility class patterns, and the approach to the design pass (studying competitive gaming sites for visual direction)
+- **Feature suggestions:** Ideas for additional features like profanity filtering, correlation IDs, security audit logging, rate limiting, and the card quiz mini-game, which I then evaluated, prioritised, and implemented
+
+### What I did independently
+
+- All game design decisions (Top Trumps rules, draw pile mechanics, tier system, stat balancing)
+- The visual design direction (dark prehistoric theme, amber accent palette, card-as-hero principle)
+- Manually balancing all 36 dinosaur stat values for competitive gameplay
+- Curating educational fun facts for each card
+- Configuring and wiring external services (SendGrid account setup, Cloudinary account and image management, Render deployment configuration for both repos)
+- User testing with real testers on the live deployment, interpreting feedback, and prioritising fixes
+- All final decisions on architecture, features, and trade-offs documented in the Known Limitations sections
