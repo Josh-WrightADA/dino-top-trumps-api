@@ -194,6 +194,66 @@ docker-compose up -d db
 
 Seed test accounts are created automatically by Flyway migration V11. Registration is also open for creating new accounts.
 
+The dev profile is active by default when running locally. It uses sensible defaults for all configuration (local PostgreSQL, dev JWT secret, CORS for localhost). No environment variables are needed for local development.
+
+### Common Commands
+
+**Setup and run:**
+```bash
+# Start local PostgreSQL (requires Docker)
+docker-compose up -d db
+
+# Run the API (dev profile, default)
+./gradlew bootRun                              # Linux/Mac
+gradlew.bat bootRun                            # Windows
+
+# API:        http://localhost:8080
+# Swagger UI: http://localhost:8080/swagger-ui.html
+# Health:     http://localhost:8080/actuator/health
+```
+
+**Testing:**
+```bash
+# Run all tests
+./gradlew clean test                           # Linux/Mac
+gradlew.bat clean test                         # Windows
+
+# Run tests with coverage report (HTML output in build/reports/jacoco/test/html/)
+./gradlew test jacocoTestReport                # Linux/Mac
+gradlew.bat test jacocoTestReport              # Windows
+
+# Run Checkstyle (code quality)
+./gradlew checkstyleMain                       # Linux/Mac
+gradlew.bat checkstyleMain                     # Windows
+```
+
+**Build and Docker:**
+```bash
+# Build the JAR (without running tests)
+./gradlew bootJar                              # Linux/Mac
+gradlew.bat bootJar                            # Windows
+
+# Build Docker image locally
+docker build -t dino-top-trumps-api .
+
+# Run Docker image locally
+docker run -p 8080:8080 --env-file .env dino-top-trumps-api
+```
+
+**Database:**
+```bash
+# Start PostgreSQL
+docker-compose up -d db
+
+# Stop PostgreSQL (data persists in Docker volume)
+docker-compose down
+
+# Stop PostgreSQL and delete all data
+docker-compose down -v
+```
+
+**Prerequisites:** Java 21 (recommended: [Eclipse Temurin](https://adoptium.net/)), Docker. The Gradle wrapper is included in the repo so Gradle itself does not need to be installed.
+
 <details>
 <summary><strong>Environment Variables</strong> (click to expand)</summary>
 
