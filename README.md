@@ -745,6 +745,8 @@ These are trade-offs I'm aware of, not oversights, and in each case I've noted w
 | **Deletes** | Hard deletes with FK cascades and SET NULL | Soft deletes with `deleted_at` for full audit trail |
 | **Resilience** | No circuit breakers on external service calls (SendGrid, Cloudinary). If Cloudinary is down, avatar upload fails with a 500 | resilience4j circuit breaker pattern with fallback responses |
 | **Redundancy** | Single instance on Render free tier. No horizontal scaling or failover | Multiple instances behind a load balancer. The architecture supports this since JWT is stateless and there are no server-side sessions |
+| **Code quality gates** | Checkstyle for style enforcement, JaCoCo for coverage reporting | SonarQube or SonarCloud for static analysis, code smell detection, security vulnerability scanning, and coverage thresholds as CI quality gates |
+| **Observability** | Correlation IDs in logs, structured audit events, health probes | Centralised log aggregation (ELK/Datadog), application performance monitoring (APM), dashboards for request latency, error rates, and throughput |
 
 ---
 
