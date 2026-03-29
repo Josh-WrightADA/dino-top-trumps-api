@@ -252,7 +252,7 @@ docker-compose down
 docker-compose down -v
 ```
 
-**Prerequisites:** Java 21 (recommended: [Eclipse Temurin](https://adoptium.net/)), Docker. The Gradle wrapper is included in the repo (`gradlew` for Linux/Mac, `gradlew.bat` for Windows) so Gradle itself does not need to be installed. On Windows, if using PowerShell, prefix with `.\` (e.g., `.\gradlew.bat clean test`). Alternatively, use Git Bash and run `./gradlew clean test` as on Linux/Mac.
+**Prerequisites:** Java 21 (recommended: [Eclipse Temurin](https://adoptium.net/)), Docker. The Gradle wrapper is included in the repo (`gradlew` for Linux/Mac, `gradlew.bat` for Windows) so Gradle itself does not need to be installed. Gradle's Java toolchain will **automatically download Java 21** if a different version is detected, so the correct JDK is used regardless of what is installed on your machine. On Windows, if using PowerShell, prefix with `.\` (e.g., `.\gradlew.bat clean test`). Alternatively, use Git Bash and run `./gradlew clean test` as on Linux/Mac.
 
 <details>
 <summary><strong>Environment Variables</strong> (click to expand)</summary>
